@@ -281,7 +281,7 @@ ecryptfs_do_create(struct inode *directory_inode,
 		goto out_lock;
 	}
 	inode = __ecryptfs_get_inode(lower_dentry->d_inode,
-			directory_inode->i_sb);
+				     directory_inode->i_sb);
 	if (IS_ERR(inode)) {
 		vfs_unlink(lower_dir_dentry->d_inode, lower_dentry);
 		goto out_lock;
