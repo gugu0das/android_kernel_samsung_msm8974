@@ -437,6 +437,7 @@ asmlinkage void __exception do_undefinstr(struct pt_regs *regs)
 	if (call_undef_hook(regs, instr) == 0)
 		return;
 
+die_sig:
 	trace_undef_instr(regs, (void *)pc);
 
 die_sig:
