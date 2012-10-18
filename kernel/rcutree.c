@@ -1555,9 +1555,9 @@ static void rcu_do_batch(struct rcu_state *rsp, struct rcu_data *rdp)
 	rdp->nxtlist = *rdp->nxttail[RCU_DONE_TAIL];
 	*rdp->nxttail[RCU_DONE_TAIL] = NULL;
 	tail = rdp->nxttail[RCU_DONE_TAIL];
-	for (i = RCU_NEXT_SIZE - 1; i >= 0; i--)
-		if (rdp->nxttail[i] == rdp->nxttail[RCU_DONE_TAIL])
-			rdp->nxttail[i] = &rdp->nxtlist;
+	for (count = RCU_NEXT_SIZE - 1; count >= 0; count--)
+		if (rdp->nxttail[count] == rdp->nxttail[RCU_DONE_TAIL])
+			rdp->nxttail[count] = &rdp->nxtlist;
 	local_irq_restore(flags);
 
 	/* Invoke callbacks. */
@@ -1582,19 +1582,18 @@ static void rcu_do_batch(struct rcu_state *rsp, struct rcu_data *rdp)
 			    rcu_is_callbacks_kthread());
 
 	/* Update count, and requeue any remaining callbacks. */
-	if (list != NULL) {
-		*tail = rdp->nxtlist;
-		rdp->nxtlist = list;
-		for (i = 0; i < RCU_NEXT_SIZE; i++)
-			if (&rdp->nxtlist == rdp->nxttail[i])
-				rdp->nxttail[i] = tail;
-			else
-				break;
-	}
-	smp_mb(); /* List handling before counting for rcu_barrier(). */
 	rdp->qlen_lazy -= count_lazy;
 	rdp->qlen -= count;
 	rdp->n_cbs_invoked += count;
+	if (list != NULL) {
+		*tail = rdp->nxtlist;
+		rdp->nxtlist = list;
+		for (count = 0; count < RCU_NEXT_SIZE; count++)
+			if (&rdp->nxtlist == rdp->nxttail[count])
+				rdp->nxttail[count] = tail;
+			else
+				break;
+	}
 
 	/* Reinstate batch limit if we have worked down the excess. */
 	if (rdp->blimit == LONG_MAX && rdp->qlen <= qlowmark)
