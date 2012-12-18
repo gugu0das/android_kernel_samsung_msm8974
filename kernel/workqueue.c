@@ -921,16 +921,8 @@ static struct worker *__find_worker_executing_work(struct global_cwq *gcwq,
 static struct worker *find_worker_executing_work(struct global_cwq *gcwq,
 						 struct work_struct *work)
 {
-	struct worker *worker;
-	struct hlist_node *tmp;
-
-	hash_for_each_possible(gcwq->busy_hash, worker, tmp, hentry,
-			       (unsigned long)work)
-		if (worker->current_work == work &&
-		    worker->current_func == work->func)
-			return worker;
-
-	return NULL;
+	return __find_worker_executing_work(gcwq, busy_worker_head(gcwq, work),
+					    work);
 }
 
 /**
