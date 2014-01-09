@@ -300,8 +300,7 @@ config DYNAMIC_FSYNC
 	  An experimental file sync control using new power_suspend driver 	  
 
 config ASYNC_FSYNC
-	bool
-	string "asynchronous fsync"
+	bool "asynchronous fsync"
 	default y
 
 endmenu
