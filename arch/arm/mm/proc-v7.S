@@ -299,6 +299,7 @@ __v7_setup:
 	mcr     p15, 3, r0, c15, c0, 2
 #endif
 
+	dsb					@ Complete invalidations
 #ifndef CONFIG_ARM_THUMBEE
 	mrc	p15, 0, r0, c0, c1, 0		@ read ID_PFR0 for ThumbEE
 	and	r0, r0, #(0xf << 12)		@ ThumbEE enabled field
