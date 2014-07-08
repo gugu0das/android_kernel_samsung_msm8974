@@ -177,6 +177,9 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 	bool is_active_high;
 	bool flag = 0;
 #endif
+#ifdef CONFIG_ZSWAP
+	struct sysinfo si;
+#endif
 
 	if (nr_to_scan > 0) {
 		if (mutex_lock_interruptible(&scan_mutex) < 0)
@@ -187,6 +190,7 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 
 	nr_cma_free = global_page_state(NR_FREE_CMA_PAGES);
 #ifdef CONFIG_ZSWAP
+	si_swapinfo(&si);
 	if (!current_is_kswapd() || sc->priority <= 6)
 #endif
 		other_free -= nr_cma_free;
@@ -209,7 +213,7 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 	}
 #endif
 	if (global_page_state(NR_SHMEM) + total_swapcache_pages < other_file)
-		other_file -= global_page_state(NR_SHMEM) + total_swapcache_pages;
+		other_file -= global_page_state(NR_SHMEM) + (si.freeswap >> 1) - total_swapcache_pages;
 	else
 		other_file = 0;
 
