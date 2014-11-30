@@ -174,6 +174,13 @@ config CPU_FREQ_DEFAULT_GOV_YANKACTIVE
 	  loading your cpufreq low-level hardware driver, using the
 	  'yankactive' governor for latency-sensitive workloads.
 
+config CPU_FREQ_DEFAULT_GOV_ZZMOOVE
+	bool "zzmoove"
+	select CPU_FREQ_GOV_ZZMOOVE
+	select CPU_FREQ_GOV_PERFORMANCE
+	help
+	  Use the CPUFreq governor 'zzmoove' as default.
+
 endchoice
 
 config CPU_FREQ_GOV_PERFORMANCE
@@ -342,6 +349,23 @@ config CPU_FREQ_GOV_YANKACTIVE
 	  The governor is based on interactive with just different default settings
 	  and can be achieved using interactive with a script. This is added for
 	  simplification purposes for myself.
+
+config CPU_FREQ_GOV_ZZMOOVE
+	tristate "'zzmoove' cpufreq governor"
+	depends on CPU_FREQ
+	help
+	  ZZMoove governor is based on the modified conservative (original author
+	  Alexander Clouter alex@digriz.org.uk) 'smoove' governor from
+	  Michael Weingaertner mialwe@googlemail.com
+	  (source: https://github.com/mialwe/mngb/)
+
+	  Modified by Zane Zaminsky since November 2012 (and further improved in
+	  2013/14 by Zane Zaminsky and Yank555) to be hotplug-able and optimzed
+	  for use with Samsung I9300. CPU Hotplug modifications partially taken
+	  from ktoonservative governor from ktoonsez KT747-JB kernel
+	  (source: https://github.com/ktoonsez/KT747-JB)
+
+	  If in doubt, say N.
 
 menu "x86 CPU frequency scaling drivers"
 depends on X86
