@@ -46,7 +46,7 @@ static struct workqueue_struct *cpu_boost_wq;
 static struct work_struct input_boost_work;
 
 #ifdef CONFIG_TOUCHBOOST_CONTROL
-unsigned int input_boost_status = 1;
+extern unsigned int input_boost_status;
 #endif
 
 static unsigned int boost_ms;
@@ -56,7 +56,7 @@ static unsigned int sync_threshold;
 module_param(sync_threshold, uint, 0644);
 
 #ifdef CONFIG_TOUCHBOOST_CONTROL
-unsigned int input_boost_freq;
+extern unsigned int input_boost_freq;
 #else
 static unsigned int input_boost_freq;
 #endif

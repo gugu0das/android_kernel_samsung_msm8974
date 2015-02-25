@@ -41,6 +41,11 @@
 #include "issp_extern.h"
 #include <linux/mfd/pm8xxx/pm8921.h>
 
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+extern unsigned int input_boost_status;
+extern unsigned int input_boost_freq;
+#endif
+
 #ifdef USE_OPEN_CLOSE
 static int cypress_input_open(struct input_dev *dev);
 static void cypress_input_close(struct input_dev *dev);
@@ -87,9 +92,20 @@ static void cypress_change_dvfs_lock(struct work_struct *work)
 		container_of(work,
 			struct cypress_touchkey_info, work_dvfs_chg.work);
 	int retval = 0;
+
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+	// if touch boost (input boost) is switched off, do nothing
+	if (!input_boost_status)
+		return;
+#endif
+
 	mutex_lock(&info->dvfs_lock);
 
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+	retval = set_freq_limit(DVFS_TOUCH_ID, input_boost_freq);
+#else
 	retval = set_freq_limit(DVFS_TOUCH_ID, info->dvfs_freq);
+#endif
 	if (retval < 0)
 		dev_info(&info->client->dev,
 			"%s: booster change failed(%d).\n",
@@ -120,6 +136,13 @@ static void cypress_set_dvfs_lock(struct cypress_touchkey_info *info,
 					uint32_t on)
 {
 	int ret = 0;
+	
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+	// if touch boost (input boost) is switched off, do nothing
+	if (!input_boost_status)
+		return;
+#endif
+	
 	if (info->is_powering_on) {/*0603 - SMD issue*/
 		dev_info(&info->client->dev,
 				"%s: ignoring dvfs set.\n", __func__);
@@ -138,7 +161,11 @@ static void cypress_set_dvfs_lock(struct cypress_touchkey_info *info,
 			cancel_delayed_work(&info->work_dvfs_chg);
 
 		if (info->dvfs_lock_status) {
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+			ret = set_freq_limit(DVFS_TOUCH_ID, input_boost_freq);
+#else
 			ret = set_freq_limit(DVFS_TOUCH_ID, info->dvfs_freq);
+#endif
 					if (ret < 0)
 						dev_info(&info->client->dev,
 					"%s: cpu first lock failed(%d)\n", __func__, ret);

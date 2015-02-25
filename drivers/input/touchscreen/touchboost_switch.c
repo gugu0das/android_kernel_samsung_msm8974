@@ -27,8 +27,8 @@
 // Global external variables
 /*****************************************/
 
-extern unsigned int input_boost_status;
-extern unsigned int input_boost_freq;
+unsigned int input_boost_status = 1;
+unsigned int input_boost_freq = 1190000;
 
 
 
