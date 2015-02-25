@@ -37,6 +37,11 @@
 extern int dt2w_switch;
 #endif
 
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+extern unsigned int input_boost_status;
+extern unsigned int input_boost_freq;
+#endif
+
 #define DRIVER_NAME "synaptics_rmi4_i2c"
 #undef USE_SENSOR_SLEEP
 
@@ -825,6 +830,12 @@ static void synaptics_change_dvfs_lock(struct work_struct *work)
 				struct synaptics_rmi4_data, work_dvfs_chg.work);
 	int retval = 0;
 
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+	// if touch boost (input boost) is switched off, do nothing
+	if (!input_boost_status)
+		return;
+#endif
+
 	mutex_lock(&rmi4_data->dvfs_lock);
 
 	if (rmi4_data->dvfs_boost_mode == DVFS_STAGE_DUAL) {
@@ -833,9 +844,15 @@ static void synaptics_change_dvfs_lock(struct work_struct *work)
 					"%s: do fw update, do not change cpu frequency.\n",
 					__func__);
 		} else {
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+			retval = set_freq_limit(DVFS_TOUCH_ID,
+					input_boost_freq);
+			rmi4_data->dvfs_freq = input_boost_freq;
+#else
 			retval = set_freq_limit(DVFS_TOUCH_ID,
 					MIN_TOUCH_LIMIT_SECOND);
 			rmi4_data->dvfs_freq = MIN_TOUCH_LIMIT_SECOND;
+#endif
 		}
 	} else if (rmi4_data->dvfs_boost_mode == DVFS_STAGE_NINTH) {
 		if (rmi4_data->stay_awake) {
@@ -843,9 +860,15 @@ static void synaptics_change_dvfs_lock(struct work_struct *work)
 					"%s: do fw update, do not change cpu frequency.\n",
 					__func__);
 		} else {
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+			retval = set_freq_limit(DVFS_TOUCH_ID,
+					input_boost_freq);
+			rmi4_data->dvfs_freq = input_boost_freq;
+#else
 			retval = set_freq_limit(DVFS_TOUCH_ID,
 					MIN_TOUCH_LIMIT);
 			rmi4_data->dvfs_freq = MIN_TOUCH_LIMIT;
+#endif
 		}
 	} else if ((rmi4_data->dvfs_boost_mode == DVFS_STAGE_SINGLE) ||
 			(rmi4_data->dvfs_boost_mode == DVFS_STAGE_TRIPLE) ||
@@ -893,6 +916,12 @@ static void synaptics_set_dvfs_lock(struct synaptics_rmi4_data *rmi4_data,
 {
 	int ret = 0;
 
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+	// if touch boost (input boost) is switched off, do nothing
+	if (!input_boost_status)
+		return;
+#endif
+
 	if (rmi4_data->dvfs_boost_mode == DVFS_STAGE_NONE) {
 		dev_dbg(&rmi4_data->i2c_client->dev,
 				"%s: DVFS stage is none(%d)\n",
@@ -919,15 +948,34 @@ static void synaptics_set_dvfs_lock(struct synaptics_rmi4_data *rmi4_data,
 			if ((rmi4_data->dvfs_freq != MIN_TOUCH_LIMIT) &&
 					(rmi4_data->dvfs_boost_mode != DVFS_STAGE_NINTH)) {
 				if (rmi4_data->dvfs_boost_mode == DVFS_STAGE_TRIPLE)
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+					ret = set_freq_limit(DVFS_TOUCH_ID,
+						input_boost_freq);
+#else
 					ret = set_freq_limit(DVFS_TOUCH_ID,
 						MIN_TOUCH_LIMIT_SECOND);
+#endif
 				else if (rmi4_data->dvfs_boost_mode == DVFS_STAGE_PENTA)
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+					ret = set_freq_limit(DVFS_TOUCH_ID,
+						input_boost_freq);
+#else
 					ret = set_freq_limit(DVFS_TOUCH_ID,
 						MIN_TOUCH_LOW_LIMIT);
+#endif
 				else
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+					ret = set_freq_limit(DVFS_TOUCH_ID,
+						input_boost_freq);
+#else
 					ret = set_freq_limit(DVFS_TOUCH_ID,
 						MIN_TOUCH_LIMIT);
+#endif
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+				rmi4_data->dvfs_freq = input_boost_freq;
+#else
 				rmi4_data->dvfs_freq = MIN_TOUCH_LIMIT;
+#endif
 
 				if (ret < 0)
 					dev_err(&rmi4_data->i2c_client->dev,
@@ -935,9 +983,15 @@ static void synaptics_set_dvfs_lock(struct synaptics_rmi4_data *rmi4_data,
 							__func__, ret);
 			} else if ((rmi4_data->dvfs_freq != MIN_TOUCH_HIGH_LIMIT) &&
 					(rmi4_data->dvfs_boost_mode == DVFS_STAGE_NINTH)) {
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+				ret = set_freq_limit(DVFS_TOUCH_ID,
+							input_boost_freq);
+				rmi4_data->dvfs_freq = input_boost_freq;
+#else
 				ret = set_freq_limit(DVFS_TOUCH_ID,
 							MIN_TOUCH_HIGH_LIMIT);
 				rmi4_data->dvfs_freq = MIN_TOUCH_HIGH_LIMIT;
+#endif
 
 				if (ret < 0)
 					dev_err(&rmi4_data->i2c_client->dev,
@@ -985,9 +1039,21 @@ static void synaptics_tkey_change_dvfs_lock(struct work_struct *work)
 		container_of(work,
 			struct synaptics_rmi4_data, work_tkey_dvfs_chg.work);
 	int retval = 0;
+
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+	// if touch boost (input boost) is switched off, do nothing
+	if (!input_boost_status)
+		return;
+#endif
+
 	mutex_lock(&rmi4_data->tkey_dvfs_lock);
 
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+	retval = set_freq_limit(DVFS_TOUCH_ID, input_boost_freq);
+#else
 	retval = set_freq_limit(DVFS_TOUCH_ID, rmi4_data->tkey_dvfs_freq);
+#endif
+
 	if (retval < 0)
 		dev_info(&rmi4_data->i2c_client->dev,
 			"%s: booster change failed(%d).\n",
@@ -1025,6 +1091,12 @@ static void synaptics_tkey_set_dvfs_lock(struct synaptics_rmi4_data *rmi4_data,
 {
 	int ret = 0;
 
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+	// if touch boost (input boost) is switched off, do nothing
+	if (!input_boost_status)
+		return;
+#endif
+
 	if (rmi4_data->tkey_dvfs_boost_mode == DVFS_STAGE_NONE) {
 		dev_dbg(&rmi4_data->i2c_client->dev,
 				"%s: DVFS stage is none(%d)\n",
@@ -1037,7 +1109,11 @@ static void synaptics_tkey_set_dvfs_lock(struct synaptics_rmi4_data *rmi4_data,
 		cancel_delayed_work(&rmi4_data->work_tkey_dvfs_chg);
 
 		if (rmi4_data->tkey_dvfs_lock_status) {
+#ifdef CONFIG_TOUCHBOOST_CONTROL
+			ret = set_freq_limit(DVFS_TOUCH_ID, input_boost_freq);
+#else
 			ret = set_freq_limit(DVFS_TOUCH_ID, rmi4_data->tkey_dvfs_freq);
+#endif
 			if (ret < 0)
 				dev_info(&rmi4_data->i2c_client->dev,
 					"%s: cpu first lock failed(%d)\n", __func__, ret);
