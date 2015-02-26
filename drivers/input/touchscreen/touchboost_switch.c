@@ -1,7 +1,7 @@
 /*
- * interface to control touch boost (= input boost) on OnePlus One bacon
+ * interface to control touch boost (= input boost) on Galaxy S5
  *
- * Author: andip71, 22.09.2014
+ * Author: andip71, 26.02.2015
  *
  *
  * This software is licensed under the terms of the GNU General Public
@@ -15,20 +15,21 @@
  *
  */
 
+#include <linux/module.h>
 #include <linux/init.h>
 #include <linux/device.h>
 #include <linux/miscdevice.h>
 #include <linux/stat.h>
-
 #include <linux/cpufreq.h>
+#include "touchboost_switch.h"
 
 
 /*****************************************/
 // Global external variables
 /*****************************************/
 
-unsigned int input_boost_status = 1;
-unsigned int input_boost_freq = 1190000;
+unsigned int input_boost_status = DEFAULT_INPUT_BOOST_STATUS;
+unsigned int input_boost_freq = DEFAULT_INPUT_BOOST_FREQ;
 
 
 
@@ -172,3 +173,7 @@ static void touchboost_switch_exit(void)
 
 module_init(touchboost_switch_init);
 module_exit(touchboost_switch_exit);
+
+MODULE_AUTHOR("andip71 (Lord Boeffla)");
+MODULE_DESCRIPTION("touchboost control - configure status and frequencies of Samsung touch booster");
+MODULE_LICENSE("GPL v2");
