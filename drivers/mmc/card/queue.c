@@ -69,6 +69,7 @@ static int mmc_queue_thread(void *d)
         sched_setscheduler(current, SCHED_FIFO, &scheduler_params);
 
 	current->flags |= PF_MEMALLOC;
+	set_wake_up_idle(true);
 
 	down(&mq->thread_sem);
 	do {
