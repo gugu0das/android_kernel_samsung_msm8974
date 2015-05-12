@@ -205,6 +205,12 @@ config CPU_FREQ_DEFAULT_GOV_NIGHTMARE
 	select CPU_FREQ_GOV_NIGHTMARE
 	help
 
+config CPU_FREQ_DEFAULT_GOV_PEGASUSQ
+	bool "pegasusq"
+	select CPU_FREQ_GOV_PEGASUSQ
+	help
+	  Use the CPUFreq governor 'pegasusq' as default.
+
 endchoice
 
 config CPU_FREQ_GOV_PERFORMANCE
@@ -346,6 +352,9 @@ config CPU_FREQ_GOV_LIONHEART
 config CPU_FREQ_GOV_NIGHTMARE
 	tristate "'nightmare' cpufreq governor"
 	depends on CPU_FREQ
+	
+config CPU_FREQ_GOV_PEGASUSQ
+	tristate "'pegasusq' cpufreq policy governor"	
 
 config CPU_FREQ_GOV_ARTERACTIVE
 	tristate "'arteractive' cpufreq policy governor"
