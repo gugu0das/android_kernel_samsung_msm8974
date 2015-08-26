@@ -2,10 +2,13 @@
 # Makefile for some libs needed in the kernel.
 #
 
-ifdef CONFIG_FUNCTION_TRACER
 ORIG_CFLAGS := $(KBUILD_CFLAGS)
+ifdef CONFIG_FUNCTION_TRACER
 KBUILD_CFLAGS = $(subst -pg,,$(ORIG_CFLAGS))
 endif
+
+# enable unaligned-access for lib
+KBUILD_CFLAGS = $(subst -mno-unaligned-access,,$(ORIG_CFLAGS)) -DCONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
 
 lib-y := ctype.o string.o vsprintf.o cmdline.o \
 	 rbtree.o radix-tree.o sradix-tree.o dump_stack.o timerqueue.o\
