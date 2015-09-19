@@ -5,6 +5,8 @@
  *
  * Modified by Jean-Pierre Rasquin <yank555.lu@gmail.com>
  *
+ * Autosleep and Hybird put back (eliminater74@gmail.com
+ *
  *  v1.1 - make powersuspend not depend on a userspace initiator anymore,
  *         but use a hook in autosleep instead.
  *
@@ -19,6 +21,8 @@
  *  v1.6 - debug output switchable in defconfig
  *
  *  v1.7 - do only run state change if change actually requests a new state
+ *
+ *  v1.7.1 - Add autosleep and hybrid modes back
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -55,8 +59,6 @@ void unregister_power_suspend(struct power_suspend *handler);
 
 void set_power_suspend_state_autosleep_hook(int new_state);
 void set_power_suspend_state_panel_hook(int new_state);
-
-extern bool power_suspended;
 
 #endif
 
