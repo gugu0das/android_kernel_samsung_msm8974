@@ -1174,4 +1174,12 @@ source "drivers/input/touchscreen/melfas_mms136/Kconfig"
 source "drivers/input/touchscreen/stm_fts/Kconfig"
 source "drivers/input/touchscreen/stm_s/Kconfig"
 source "drivers/input/touchscreen/synaptics_jsglte/Kconfig"
+
+config TOUCHBOOST_CONTROL
+	bool "Touch boost control"
+	depends on INPUT_TOUCHSCREEN
+	help
+	  Boeffla Kernels functionality to control input boost as touch boost
+	  in the Boeffla Config app
+
 endif
