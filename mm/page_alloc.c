@@ -2619,8 +2619,6 @@ rebalance:
 	 * running out of options and have to consider going OOM
 	 */
 #ifdef CONFIG_SEC_OOM_KILLER
-#define SHOULD_CONSIDER_OOM !did_some_progress || time_after(jiffies, oom_invoke_timeout)
-#else
 #define SHOULD_CONSIDER_OOM !did_some_progress
 #endif
 	if (SHOULD_CONSIDER_OOM) {
@@ -2631,15 +2629,6 @@ rebalance:
 			if ((current->flags & PF_DUMPCORE) &&
 			    !(gfp_mask & __GFP_NOFAIL))
 				goto nopage;
-#ifdef CONFIG_SEC_OOM_KILLER
-			if (did_some_progress) {
-				pr_info("time's up : calling "
-					"__alloc_pages_may_oom(o:%d, gfp:0x%x)\n", order, gfp_mask);
-#if defined(CONFIG_SEC_SLOWPATH)
-				oomk_state |= 0x01;
-#endif
-			}
-#endif
 
 			page = __alloc_pages_may_oom(gfp_mask, order,
 					zonelist, high_zoneidx,
