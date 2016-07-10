@@ -107,10 +107,13 @@
 	i2c@21 {
 		cell-index = <21>;
 		compatible = "i2c-gpio";
-		gpios = <&msmgpio 33 0 /* sda */
-		&msmgpio 32 0 /* scl */
+		gpios = <&msmgpio 33 0
+		&msmgpio 32 0
 		>;
 
+		i2c-gpio,delay-us = <2>;
+		#address-cells = <1>;
+		#size-cells = <0>;
 		an30259a@30 {
 			compatible = "an30259a,led";
 			reg = <0x30>;
