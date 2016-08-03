@@ -109,3 +109,6 @@ obj-$(CONFIG_ASYNC_CORE) += async_tx/
 
 #Keep this at the bottom
 obj-$(CONFIG_CRYPTO_FIPS) += last_file.o
+
+# Squeeze a little bit more juice from GCC
+ccflags-y := -O3
