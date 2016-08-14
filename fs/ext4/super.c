@@ -512,6 +512,7 @@ void __ext4_error(struct super_block *sb, const char *function,
 	else
 		printk(KERN_ERR "__ext4_error: failed to allocate page buf for panic msg\n");
 	va_end(args);
+	save_error_info(sb, function, line);
 
 	ext4_handle_error(sb, page_buf);
 	if (page_buf)
@@ -3754,7 +3755,8 @@ no_journal:
 		goto failed_mount4;
 	}
 
-	ext4_setup_super(sb, es, sb->s_flags & MS_RDONLY);
+	if (ext4_setup_super(sb, es, sb->s_flags & MS_RDONLY))
+		sb->s_flags |= MS_RDONLY;
 
 	/* determine the minimum size of new large inodes, if present */
 	if (sbi->s_inode_size > EXT4_GOOD_OLD_INODE_SIZE) {

@@ -1919,7 +1919,6 @@ no_transform:
 	}
 ok:
 	xfrm_pols_put(pols, drop_pols);
-	return dst;
 
 nopol:
 	if (!(flags & XFRM_LOOKUP_ICMP)) {
