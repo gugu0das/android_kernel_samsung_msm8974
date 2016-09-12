@@ -451,6 +451,7 @@ struct l2cap_conn {
 
 	__u8		disc_reason;
 
+	struct smp_chan *smp_chan;
 	struct l2cap_chan_list chan_list;
 };
 
