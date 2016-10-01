@@ -784,7 +784,7 @@ static struct gpiomux_setting chagall_muic_cfg = {
 	.dir = GPIOMUX_IN,
 };
 
-static struct msm_gpiomux_config msm_chagall_muic_configs[] __initdata = {
+static struct msm_gpiomux_config msm_chagall_muic_configs[] = {
 	{
 		.gpio = 73,
 		.settings = {
@@ -928,7 +928,7 @@ static struct gpiomux_setting mhl_suspend_cfg = {
 };
 
 
-static struct msm_gpiomux_config mhl_configs[] __initdata = {
+static struct msm_gpiomux_config mhl_configs[] = {
         {
                 .gpio      = 10, /* BLSP3 QUP I2C_DAT */
                 .settings  = {
