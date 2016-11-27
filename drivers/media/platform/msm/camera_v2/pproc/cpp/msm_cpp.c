@@ -1478,11 +1478,6 @@ static int msm_cpp_cfg(struct cpp_device *cpp_dev,
 	if (cpp_dev->hw_info.cpp_hw_version == 0x10010000) {
 		fw_version_1_2_x = 2;
 	}
-#ifdef CONFIG_MACH_CHAGALL_KDI
-	else if (cpp_dev->hw_info.cpp_hw_version == CPP_HW_VERSION_1_1_1) {
-		fw_version_1_2_x = 2;
-	}
-#endif
 	for (i = 0; i < num_stripes; i++) {
 		cpp_frame_msg[(133 + fw_version_1_2_x) + i * 27] +=
 			(uint32_t) in_phyaddr;
