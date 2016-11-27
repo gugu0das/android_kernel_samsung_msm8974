@@ -183,8 +183,6 @@ enum sdc_mpm_pin_state {
 
 #define sdhci_is_valid_mpm_wakeup_int(_h) ((_h)->pdata->mpm_sdiowakeup_int >= 0)
 #define sdhci_is_valid_gpio_wakeup_int(_h) ((_h)->pdata->sdiowakeup_irq >= 0)
-#define NUM_TUNING_PHASES		16
-#define MAX_DRV_TYPES_SUPPORTED_HS200	3
 
 static const u32 tuning_block_64[] = {
 	0x00FF0FFF, 0xCCC3CCFF, 0xFFCC3CC3, 0xEFFEFFFE,

@@ -1710,6 +1710,7 @@ static int mmc_blk_err_check(struct mmc_card *card,
 		unsigned long timeout;
 
 		timeout = jiffies + msecs_to_jiffies(MMC_BLK_TIMEOUT_MS);
+
 		/* Check stop command response */
 		if (brq->stop.resp[0] & R1_ERROR) {
 			pr_err("%s: %s: general error sending stop command, stop cmd response %#x\n",
@@ -2874,6 +2875,7 @@ static int mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
 #ifdef CONFIG_MMC_BLOCK_DEFERRED_RESUME
 	if (mmc_bus_needs_resume(card->host)) {
 		mmc_resume_bus(card->host);
+//		mmc_blk_set_blksize(md, card);
 	}
 #endif
 		if (card->ext_csd.bkops_en)

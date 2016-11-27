@@ -326,10 +326,6 @@ struct mmc_bkops_info {
 #define BKOPS_SIZE_PERCENTAGE_TO_QUEUE_DELAYED_WORK 1 /* 1% */
 };
 
-enum mmc_pon_type {
-	MMC_LONG_PON = 1,
-	MMC_SHRT_PON,
-};
 /*
  * MMC device
  */
@@ -374,7 +370,7 @@ struct mmc_card {
 /* To avoid eMMC device getting broken permanently due to HPI feature */
 #define MMC_QUIRK_BROKEN_HPI (1 << 11)
 /* Skip data-timeout advertised by card */
-#define MMC_QUIRK_BROKEN_DATA_TIMEOUT	(1<<12)
+#define MMC_QUIRK_BROKEN_DATA_TIMEOUT	(1<<13)
 
 #define MMC_QUIRK_CACHE_DISABLE (1 << 14)       /* prevent cache enable */
 

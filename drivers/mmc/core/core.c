@@ -3283,6 +3283,13 @@ void mmc_rescan(struct work_struct *work)
 	if (host->bus_dead)
 		extend_wakelock = 1;
 
+
+	/* If the card was removed the bus will be marked
+	 * as dead - extend the wakelock so userspace
+	 * can respond */
+	if (host->bus_dead)
+		extend_wakelock = 1;
+
 	/*
 	 * Let mmc_bus_put() free the bus/bus_ops if we've found that
 	 * the card is no longer present.
@@ -3343,6 +3350,9 @@ void mmc_start_host(struct mmc_host *host)
 		mmc_detect_change(host, msecs_to_jiffies(2000));
 	}
 	else
+#endif
+#if defined (CONFIG_BCM4354)
+	if ( 0 != strcmp(mmc_hostname(host),"mmc1"))
 #endif
 	mmc_detect_change(host, 0);
 }
@@ -3706,7 +3716,7 @@ int mmc_pm_notify(struct notifier_block *notify_block,
 	switch (mode) {
 	case PM_HIBERNATION_PREPARE:
 	case PM_SUSPEND_PREPARE:
-        case PM_RESTORE_PREPARE:
+	case PM_RESTORE_PREPARE:
 		if (host->card && mmc_card_mmc(host->card)) {
 			mmc_claim_host(host);
 			err = mmc_stop_bkops(host->card);
