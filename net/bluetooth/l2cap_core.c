@@ -1039,7 +1039,6 @@ static void l2cap_le_conn_ready(struct l2cap_conn *conn)
 	write_lock_bh(&list->lock);
 
 	hci_conn_hold(conn->hcon);
-	conn->hcon->disc_timeout = HCI_DISCONN_TIMEOUT;
 
 	l2cap_sock_init(sk, parent);
 	bacpy(&bt_sk(sk)->src, conn->src);
@@ -7980,3 +7979,4 @@ MODULE_PARM_DESC(enable_hs, "Enable A2MP protocol");
 
 module_param(enable_reconfig, bool, 0644);
 MODULE_PARM_DESC(enable_reconfig, "Enable reconfig after initiating AMP move");
+
