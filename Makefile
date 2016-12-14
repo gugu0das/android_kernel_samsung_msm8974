@@ -1,6 +1,6 @@
 VERSION = 3
 PATCHLEVEL = 4
-SUBLEVEL = 76
+SUBLEVEL = 77
 EXTRAVERSION = -gugu0das_NX
 NAME = Saber-toothed Squirrel
 
