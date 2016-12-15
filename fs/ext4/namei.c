@@ -1108,9 +1108,9 @@ static struct dentry *ext4_lookup(struct inode *dir, struct dentry *dentry, stru
 		bh = ext4_find_entry(dir, &dentry->d_name, &de, NULL);
 #else
 	bh = ext4_find_entry(dir, &dentry->d_name, &de);
+#endif
 	if (IS_ERR(bh))
 		return (struct dentry *) bh;
-#endif
 	inode = NULL;
 	if (bh) {
 		__u32 ino = le32_to_cpu(de->inode);
@@ -1166,9 +1166,9 @@ struct dentry *ext4_get_parent(struct dentry *child)
 	bh = ext4_find_entry(child->d_inode, &dotdot, &de, NULL);
 #else
 	bh = ext4_find_entry(child->d_inode, &dotdot, &de);
+#endif
 	if (IS_ERR(bh))
 		return (struct dentry *) bh;
-#endif
 	if (!bh)
 		return ERR_PTR(-ENOENT);
 	ino = le32_to_cpu(de->inode);
@@ -2249,9 +2249,9 @@ static int ext4_rmdir(struct inode *dir, struct dentry *dentry)
 	bh = ext4_find_entry(dir, &dentry->d_name, &de, NULL);
 #else
 	bh = ext4_find_entry(dir, &dentry->d_name, &de);
+#endif
 	if (IS_ERR(bh))
 		return PTR_ERR(bh);
-#endif
 	if (!bh)
 		goto end_rmdir;
 
@@ -2321,9 +2321,9 @@ static int ext4_unlink(struct inode *dir, struct dentry *dentry)
 	bh = ext4_find_entry(dir, &dentry->d_name, &de, NULL);
 #else
 	bh = ext4_find_entry(dir, &dentry->d_name, &de);
+#endif
 	if (IS_ERR(bh))
 		return PTR_ERR(bh);
-#endif
 	if (!bh)
 		goto end_unlink;
 
@@ -2554,9 +2554,9 @@ static int ext4_rename(struct inode *old_dir, struct dentry *old_dentry,
 	old_bh = ext4_find_entry(old_dir, &old_dentry->d_name, &old_de, NULL);
 #else
 	old_bh = ext4_find_entry(old_dir, &old_dentry->d_name, &old_de);
+#endif
 	if (IS_ERR(old_bh))
 		return PTR_ERR(old_bh);
-#endif
 	/*
 	 *  Check for inode number is _not_ due to possible IO errors.
 	 *  We might rmdir the source, keep it as pwd of some process
@@ -2573,12 +2573,12 @@ static int ext4_rename(struct inode *old_dir, struct dentry *old_dentry,
 	new_bh = ext4_find_entry(new_dir, &new_dentry->d_name, &new_de, NULL);
 #else
 	new_bh = ext4_find_entry(new_dir, &new_dentry->d_name, &new_de);
+#endif
 	if (IS_ERR(new_bh)) {
 		retval = PTR_ERR(new_bh);
 		new_bh = NULL;
 		goto end_rename;
 	}
-#endif
 	if (new_bh) {
 		if (!new_inode) {
 			brelse(new_bh);
