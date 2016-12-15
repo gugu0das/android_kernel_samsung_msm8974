@@ -37,7 +37,6 @@
 #include <linux/mii.h>
 #include <linux/usb.h>
 #include <linux/crc32.h>
-#include <linux/if_vlan.h>
 
 #include "axusbnet.c"
 #include "asix.h"
