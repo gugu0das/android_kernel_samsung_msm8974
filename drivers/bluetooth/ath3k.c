@@ -99,6 +99,7 @@ static struct usb_device_id ath3k_table[] = {
  
 
 	/* Atheros AR5BBU12 with sflash firmware */
+        { USB_DEVICE(0x0CF3, 0x817b) },
 	{ USB_DEVICE(0x0489, 0xE02C) },
 	{ USB_DEVICE(0x0CF3, 0xE005) },
 	{ USB_DEVICE(0x13d3, 0x3393) },
@@ -134,6 +135,7 @@ static struct usb_device_id ath3k_blist_tbl[] = {
 	{ USB_DEVICE(0x0930, 0x0219), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x0930, 0x0227), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x0b05, 0x17d0), .driver_info = BTUSB_ATH3012 },
+	{ USB_DEVICE(0x0CF3, 0x817b), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x0cf3, 0x3004), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x0cf3, 0x3008), .driver_info = BTUSB_ATH3012 },
 	{ USB_DEVICE(0x0cf3, 0xe005), .driver_info = BTUSB_ATH3012 },
