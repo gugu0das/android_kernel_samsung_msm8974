@@ -451,7 +451,6 @@ csum_copy_err:
 					UDP_MIB_INERRORS, is_udplite);
 	}
 	unlock_sock_fast(sk, slow);
-
 	
 	/* starting over for a new packet, but check if we need to yield */
 	cond_resched();
