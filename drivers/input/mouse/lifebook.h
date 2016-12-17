@@ -19,7 +19,7 @@ int lifebook_init(struct psmouse *psmouse);
 inline void lifebook_module_init(void)
 {
 }
-inline int lifebook_detect(struct psmouse *psmouse, bool set_properties)
+static int lifebook_detect(struct psmouse *psmouse, bool set_properties)
 {
 	return -ENOSYS;
 }

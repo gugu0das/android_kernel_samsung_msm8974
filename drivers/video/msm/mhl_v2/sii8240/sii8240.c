@@ -420,7 +420,7 @@ static int sii8240_tmds_active_hdcp(struct sii8240_data *sii8240)
 	return ret;
 }
 #endif
-static int tmds_control(struct sii8240_data *sii8240, bool tmds_on)
+static int tmds_control(struct sii8240_data *sii8240, int tmds_on)
 {
 	int ret;
 #ifdef SFEATURE_HDCP_SUPPORT
