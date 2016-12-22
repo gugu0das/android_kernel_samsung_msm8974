@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export ARCH=arm
-export CROSS_COMPILE=$(pwd)/arm-cortex-linux-gnueabi-linaro_5.2-2015.11-2/bin/arm-cortex-linux-gnueabi-
+export CROSS_COMPILE=$(pwd)/armeb-linux-gnueabihf-linaro_5.3.1-2016.05/bin/armeb-linux-gnueabihf-
 
 mkdir output
 
