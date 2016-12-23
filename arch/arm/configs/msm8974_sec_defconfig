@@ -701,3 +701,5 @@ CONFIG_POWERSUSPEND=y
 #intelli plug
 CONFIG_INTELLI_PLUG=y
 
+#adreno idler
+CONFIG_ADRENO_IDLER=y
