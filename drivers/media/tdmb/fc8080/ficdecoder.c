@@ -853,7 +853,7 @@ int fig0_ext10_decoder(u8 *fibBuffer, int figLength)
 {
 	int result = 0;
 
-	u8 MJD,  /*ConfInd,*/ UTCflag;
+	u16 MJD,  /*ConfInd,*/ UTCflag;
 	/* u16 LSI; */
 	u8 hour = 0; /*minutes = 0, seconds = 0*/
 	u16 milliseconds = 0;
