@@ -470,6 +470,9 @@ extern struct cpufreq_governor cpufreq_gov_intelliactive;
 #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_ARTERACTIVE)
 extern struct cpufreq_governor cpufreq_gov_arteractive;
 #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_arteractive)
+#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMANDPLUS)
+extern struct cpufreq_governor cpufreq_gov_ondemandplus;
+#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_ondemandplus)
 #endif
 
 
