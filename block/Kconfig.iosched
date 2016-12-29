@@ -88,6 +88,13 @@ config IOSCHED_FIFO
 	---help---
 	  FIFO is similar to no-op I/O scheduler and it's a minimal scheduler that does basic merging and sorting.
 
+config IOSCHED_ZEN
+	tristate "Zen I/O scheduler"
+	default n
+	---help---
+	  FCFS, dispatches are back-inserted, deadlines ensure fairness.
+	  Should work best with devices where there is no travel delay.
+
 choice
 	prompt "Default I/O scheduler"
 	default DEFAULT_CFQ
@@ -123,6 +130,9 @@ choice
 	config DEFAULT_FIFO
 		bool "FIFO" if IOSCHED_FIFO=y
 
+	config DEFAULT_ZEN
+		bool "ZEN" if IOSCHED_ZEN=y
+
 endchoice
 
 config DEFAULT_IOSCHED
@@ -134,6 +144,7 @@ config DEFAULT_IOSCHED
 	default "bfq" if DEFAULT_BFQ
 	default "fiops" if DEFAULT_FIOPS
 	default "fifo" if DEFAULT_FIFO
+	default "zen" if DEFAULT_ZEN
 
 endmenu
 
