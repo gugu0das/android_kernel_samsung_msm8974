@@ -2744,7 +2744,7 @@ unsigned int ieee80211_get_mesh_hdrlen(struct ieee80211s_hdr *meshhdr);
  * @addr: the device MAC address
  * @iftype: the virtual interface type
  */
-int ieee80211_data_to_8023(struct sk_buff *skb, const u8 *addr,
+static int ieee80211_data_to_8023(struct sk_buff *skb, const u8 *addr,
 			   enum nl80211_iftype iftype);
 
 /**
@@ -2773,7 +2773,7 @@ int ieee80211_data_from_8023(struct sk_buff *skb, const u8 *addr,
  * @extra_headroom: The hardware extra headroom for SKBs in the @list.
  * @has_80211_header: Set it true if SKB is with IEEE 802.11 header.
  */
-void ieee80211_amsdu_to_8023s(struct sk_buff *skb, struct sk_buff_head *list,
+static void ieee80211_amsdu_to_8023s(struct sk_buff *skb, struct sk_buff_head *list,
 			      const u8 *addr, enum nl80211_iftype iftype,
 			      const unsigned int extra_headroom,
 			      bool has_80211_header);
