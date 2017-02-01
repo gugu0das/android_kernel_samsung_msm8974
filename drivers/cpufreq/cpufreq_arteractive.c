@@ -24,6 +24,17 @@
  *                 Predefine some governor tunables
  *           1.1 - Predefine more governor tunables taken from stock klte firmware's init.qcom.post_boot.sh
  *           1.2 - Apply Samsung changes from SM-G900F_EUR_LL_Opensource.zip
+ *           1.3 - Apply upstream patches from https://github.com/android/kernel_common (branch android-3.4)
+ *                 (subsystem: CPU FREQUENCY DRIVERS- Set cpu_load calculation on current frequency)
+ *           2.0 - Apply different go_hispeed_load when screen is off
+ *                 (depends on powersuspend)
+ *                 (inspired by https://github.com/CyanogenMod/android_device_lge_hammerhead/commit/e18d9f262ddad4d142be1fb14dd48cdc01e64dee )
+ *                 Apply hispeed boost only on cpu0.
+ *                     Boost in interactive is intended to ramp up the frequency on sudden workload burst,
+ *                     and since most *sudden workload* is single-threaded, boosting up exclusively on cpu0 is quite enough.
+ *                     Rest of the cores can slowly ramp up and match the actual workload.
+ *                     This is not recommended on devices where reducing latency is very important.
+ *                 Apply some several CAF(3.4 & 3.10) and Chromium(3.14) commits.
  *
  */
 
@@ -41,6 +52,7 @@
 #include <linux/kthread.h>
 #include <linux/slab.h>
 #include <linux/kernel_stat.h>
+#include <linux/powersuspend.h>
 #include <asm/cputime.h>
 
 #define CONFIG_MODE_AUTO_CHANGE
@@ -90,6 +102,9 @@ struct cpufreq_interactive_cpuinfo {
 
 static DEFINE_PER_CPU(struct cpufreq_interactive_cpuinfo, cpuinfo);
 
+/* boolean for determining screen on/off state */
+static bool suspended = false;
+
 /* realtime thread handles frequency scaling */
 static struct task_struct *speedchange_task;
 static cpumask_t speedchange_cpumask;
@@ -102,6 +117,9 @@ static unsigned int hispeed_freq = 1190400;
 /* Go to hi speed when CPU load at or above this value. */
 #define DEFAULT_GO_HISPEED_LOAD 99
 static unsigned long go_hispeed_load = DEFAULT_GO_HISPEED_LOAD;
+
+/* Go to hi speed when CPU load at or above this value on screen-off state */
+#define DEFAULT_GO_HISPEED_LOAD_SCREEN_OFF 110
 
 /* Sampling down factor to be applied to min_sample_time at max freq */
 static unsigned int sampling_down_factor = 100000;
@@ -640,7 +658,7 @@ static void exit_mode(void)
 }
 #endif
 
-static void cpufreq_interactive_timer(unsigned long data)
+static void __cpufreq_interactive_timer(unsigned long data, bool is_notif)
 {
 	u64 now;
 	unsigned int delta_time;
@@ -652,6 +670,7 @@ static void cpufreq_interactive_timer(unsigned long data)
 	unsigned int loadadjfreq;
 	unsigned int index;
 	unsigned long flags;
+	unsigned int this_hispeed_freq;
 	bool boosted;
 	unsigned long mod_min_sample_time;
 	int i, max_load;
@@ -702,23 +721,33 @@ static void cpufreq_interactive_timer(unsigned long data)
 	spin_lock_irqsave(&pcpu->target_freq_lock, flags);
 	do_div(cputime_speedadj, delta_time);
 	loadadjfreq = (unsigned int)cputime_speedadj * 100;
-	cpu_load = loadadjfreq / pcpu->target_freq;
+	cpu_load = loadadjfreq / pcpu->policy->cur;
 	pcpu->prev_load = cpu_load;
 	boosted = boost_val || now < boostpulse_endtime;
+	this_hispeed_freq = max(hispeed_freq, pcpu->policy->min);
 
 #ifdef CONFIG_SEC_PM
 	pcpu->policy->util = cpu_load;
 #endif
 
-	if (cpu_load >= go_hispeed_load || boosted) {
-		if (pcpu->target_freq < hispeed_freq) {
-			new_freq = hispeed_freq;
-		} else {
-			new_freq = choose_freq(pcpu, loadadjfreq);
+	if ( (suspended && (cpu_load >= DEFAULT_GO_HISPEED_LOAD_SCREEN_OFF)) ||
+	    (!suspended && (cpu_load >= go_hispeed_load)) ||
+	     (boosted)) {
+		if (pcpu->policy->cpu == 0) {
+			if (pcpu->target_freq < this_hispeed_freq) {
+				new_freq = this_hispeed_freq;
+			} else {
+				new_freq = choose_freq(pcpu, loadadjfreq);
 
-			if (new_freq < hispeed_freq)
-				new_freq = hispeed_freq;
+				if (new_freq < this_hispeed_freq)
+					new_freq = this_hispeed_freq;
+			}
 		}
+#if 0 /* for debugging purpose */
+		  else {
+			pr_info("%s: not boosting up cpu%d\n", __func__, pcpu->policy->cpu);
+		}
+#endif
 	} else {
 		new_freq = choose_freq(pcpu, loadadjfreq);
 
@@ -744,7 +773,7 @@ static void cpufreq_interactive_timer(unsigned long data)
 		}
 	}
 
-	if (pcpu->target_freq >= hispeed_freq &&
+	if (pcpu->target_freq >= this_hispeed_freq &&
 	    new_freq > pcpu->target_freq &&
 	    now - pcpu->hispeed_validate_time <
 	    freq_to_above_hispeed_delay(pcpu->target_freq)) {
@@ -778,7 +807,7 @@ static void cpufreq_interactive_timer(unsigned long data)
 		mod_min_sample_time = 0;
 		pcpu->minfreq_boost = 0;
 	}
-	if (new_freq < pcpu->floor_freq) {
+	if (!is_notif && new_freq < pcpu->floor_freq) {
 		if (now - pcpu->floor_validate_time < mod_min_sample_time) {
 			spin_unlock_irqrestore(&pcpu->target_freq_lock, flags);
 			goto rearm;
@@ -788,12 +817,12 @@ static void cpufreq_interactive_timer(unsigned long data)
 	/*
 	 * Update the timestamp for checking whether speed has been held at
 	 * or above the selected frequency for a minimum of min_sample_time,
-	 * if not boosted to hispeed_freq.  If boosted to hispeed_freq then we
-	 * allow the speed to drop as soon as the boostpulse duration expires
-	 * (or the indefinite boost is turned off).
+	 * if not boosted to this_hispeed_freq.  If boosted to this_hispeed_freq
+	 * then we allow the speed to drop as soon as the boostpulse duration
+	 * expires (or the indefinite boost is turned off).
 	 */
 
-	if (!boosted || new_freq > hispeed_freq) {
+	if (!boosted || new_freq > this_hispeed_freq) {
 		pcpu->floor_freq = new_freq;
 		pcpu->floor_validate_time = now;
 	}
@@ -890,7 +919,7 @@ static void cpufreq_interactive_idle_end(void)
 	} else if (time_after_eq(jiffies, pcpu->cpu_timer.expires)) {
 		del_timer(&pcpu->cpu_timer);
 		del_timer(&pcpu->cpu_slack_timer);
-		cpufreq_interactive_timer(smp_processor_id());
+		__cpufreq_interactive_timer(smp_processor_id(), true);
 	}
 
 	up_read(&pcpu->enable_sem);
@@ -999,7 +1028,7 @@ static int cpufreq_interactive_notifier(
 	int cpu;
 	unsigned long flags;
 
-	if (val == CPUFREQ_POSTCHANGE) {
+	if (val == CPUFREQ_PRECHANGE) {
 		pcpu = &per_cpu(cpuinfo, freq->cpu);
 		if (!down_read_trylock(&pcpu->enable_sem))
 			return 0;
@@ -1381,21 +1410,27 @@ static ssize_t store_timer_rate(struct kobject *kobj,
 			struct attribute *attr, const char *buf, size_t count)
 {
 	int ret;
-	unsigned long val;
+	unsigned long val, val_round;
 #ifdef CONFIG_MODE_AUTO_CHANGE
 	unsigned long flags2;
 #endif
 	ret = strict_strtoul(buf, 0, &val);
 	if (ret < 0)
 		return ret;
+
+	val_round = jiffies_to_usecs(usecs_to_jiffies(val));
+	if (val != val_round)
+		pr_warn("timer_rate not aligned to jiffy. Rounded up to %lu\n",
+			val_round);
+
 #ifdef CONFIG_MODE_AUTO_CHANGE
 	spin_lock_irqsave(&mode_lock, flags2);
-	timer_rate_set[param_index] = val;
+	timer_rate_set[param_index] = val_round;
 	if (cur_param_index == param_index)
-		timer_rate = val;
+		timer_rate = val_round;
 	spin_unlock_irqrestore(&mode_lock, flags2);
 #else
-	timer_rate = val;
+	timer_rate = val_round;
 #endif
 	return count;
 }
@@ -1847,9 +1882,6 @@ static int cpufreq_governor_arteractive(struct cpufreq_policy *policy,
 
 	switch (event) {
 	case CPUFREQ_GOV_START:
-		if (!cpu_online(policy->cpu))
-			return -EINVAL;
-
 		mutex_lock(&gov_lock);
 
 		freq_table =
@@ -1979,6 +2011,28 @@ static void cpufreq_interactive_nop_timer(unsigned long data)
 {
 }
 
+static void arteractive_early_suspend(struct power_suspend *handler)
+{
+	suspended = true;
+	return;
+}
+
+static void arteractive_late_resume(struct power_suspend *handler)
+{
+	suspended = false;
+	return;
+}
+
+static struct power_suspend arteractive_suspend = {
+	.suspend = arteractive_early_suspend,
+	.resume = arteractive_late_resume,
+};
+
+static void cpufreq_interactive_timer(unsigned long data)
+{
+	__cpufreq_interactive_timer(data, false);
+}
+
 static int __init cpufreq_arteractive_init(void)
 {
 #if TOUCHBOOST
@@ -2005,6 +2059,8 @@ static int __init cpufreq_arteractive_init(void)
 			rc = input_register_handler(&interactive_input_handler);
 #endif
 	}
+
+	register_power_suspend(&arteractive_suspend);
 
 	spin_lock_init(&target_loads_lock);
 	spin_lock_init(&speedchange_cpumask_lock);
