@@ -177,9 +177,7 @@ static int lowmem_shrink(struct shrinker *s, struct shrink_control *sc)
 	bool is_active_high;
 	bool flag = 0;
 #endif
-#ifdef CONFIG_ZSWAP
 	struct sysinfo si;
-#endif
 
 	if (nr_to_scan > 0) {
 		if (mutex_lock_interruptible(&scan_mutex) < 0)
