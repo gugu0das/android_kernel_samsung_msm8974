@@ -751,6 +751,8 @@ static ssize_t intensity_show(struct device *dev,
 	return sprintf(buf, "%u\n", (vib->intensity / 100));
 }
 
+static DEVICE_ATTR(intensity, 0660, intensity_show, intensity_store);
+
 static ssize_t pwm_default_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -852,6 +854,7 @@ static int ss_vibrator_probe(struct platform_device *pdev)
 		goto err_read_vib;
 	}
 
+	rc = sysfs_create_file(&vib->timed_dev.dev->kobj, &dev_attr_intensity.attr);
 	rc = sysfs_create_file(&vib->timed_dev.dev->kobj, &dev_attr_pwm_default.attr);
 	rc = sysfs_create_file(&vib->timed_dev.dev->kobj, &dev_attr_pwm_min.attr);
 	rc = sysfs_create_file(&vib->timed_dev.dev->kobj, &dev_attr_pwm_max.attr);
