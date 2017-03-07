@@ -2543,7 +2543,7 @@ static int mipi_samsung_disp_send_cmd(
 
 			msd.dstat.recent_bright_level = msd.dstat.bright_level;
 #if defined(HBM_RE) || defined(CONFIG_HBM_PSRE)
-			if(msd.dstat.auto_brightness >= 6 && msd.dstat.bright_level == 255) {
+			if(msd.dstat.auto_brightness == 6) {
 				cmd_size = make_brightcontrol_hbm_set(msd.dstat.bright_level);
 				msd.dstat.hbm_mode = 1;
 			} else {
@@ -2562,7 +2562,6 @@ static int mipi_samsung_disp_send_cmd(
 				pr_info("%s : panel is off state!!\n", __func__);
 				goto unknown_command;
 			}
-			udelay(300);
 			break;
 		case PANEL_MTP_ENABLE:
 			cmd_desc = nv_enable_cmds.cmd_desc;
@@ -3483,7 +3482,7 @@ error2:
 
 }
 
-int mdss_panel_dt_get_dst_fmt(u32 bpp, char mipi_mode, u32 pixel_packing,
+int mdss_panel_get_dst_fmt(u32 bpp, char mipi_mode, u32 pixel_packing,
 				char *dst_format)
 {
 	int rc = 0;

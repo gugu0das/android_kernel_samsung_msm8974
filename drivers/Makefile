@@ -157,5 +157,6 @@ obj-$(CONFIG_ADSP_FACTORY)      += adsp_factory/
 obj-$(CONFIG_EXTCON)		+= extcon/
 obj-$(CONFIG_IR_REMOCON_MC96FR116)	+= irda/
 obj-$(CONFIG_IRDA_COMMON_LDO)	+= irda/
+obj-$(CONFIG_SEC_NET_FILTER)	+= secfilter/
 
 obj-$(CONFIG_MACH_BAFFIN2_SGLTE) += qsc/

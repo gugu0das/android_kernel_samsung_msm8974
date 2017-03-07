@@ -497,6 +497,9 @@ static void ncm_do_notify(struct f_ncm *ncm)
 	struct usb_composite_dev	*cdev = ncm->port.func.config->cdev;
 	__le32				*data;
 	int				status;
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+	struct eth_dev      *dev = ncm->port.ioport;
+#endif
 
 	/* notification already in flight? */
 	if (!req)
@@ -505,6 +508,15 @@ static void ncm_do_notify(struct f_ncm *ncm)
 	event = req->buf;
 	switch (ncm->notify_state) {
 	case NCM_NOTIFY_NONE:
+#ifdef CONFIG_USB_ANDROID_SAMSUNG_COMPOSITE
+        if(ncm->is_open) {
+            printk(KERN_INFO "usb: %s: set net carrier on after notify done\n",__func__);
+            netif_carrier_on(dev->net);
+        } else {
+            printk(KERN_INFO "usb: %s: set net carrier off after notify done\n",__func__);
+            netif_carrier_off(dev->net);
+        }
+#endif
 		return;
 
 	case NCM_NOTIFY_CONNECT:

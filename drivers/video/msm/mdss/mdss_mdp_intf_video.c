@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -64,7 +64,6 @@ struct mdss_mdp_video_ctx {
 	bool polling_en;
 	u32 poll_cnt;
 	struct completion vsync_comp;
-	struct completion pp_comp;
 	int wait_pending;
 
 	atomic_t vsync_ref;
@@ -738,15 +737,6 @@ static int mdss_mdp_video_display(struct mdss_mdp_ctl *ctl, void *arg)
 
 		pr_debug("enabling timing gen for intf=%d\n", ctl->intf_num);
 
-		if ((pdata->panel_info.cont_splash_enabled &&
-			!ctl->mfd->splash_info.splash_logo_enabled)
-			|| (ctl->mfd->splash_info.splash_logo_enabled
-			&& ctl->mfd->splash_info.splash_thread
-			&& !is_mdss_iommu_attached())) {
-			rc = wait_for_completion_timeout(&ctx->vsync_comp,
-					usecs_to_jiffies(VSYNC_TIMEOUT_US));
-		}
-
 		rc = mdss_iommu_ctrl(1);
 		if (IS_ERR_VALUE(rc)) {
 			pr_err("IOMMU attach failed\n");
@@ -859,7 +849,7 @@ int mdss_mdp_video_reconfigure_splash_done(struct mdss_mdp_ctl *ctl,
 #if defined(CONFIG_FB_MSM_MDSS_S6E8AA0A_HD_PANEL)
 	ret = mdss_mdp_ctl_intf_event(ctl, MTP_READ,NULL);
 #endif
-	 pr_err("[QC] handoff : %d\n", handoff);
+
 	if (!handoff) {
 		ret = mdss_mdp_ctl_intf_event(ctl, MDSS_EVENT_CONT_SPLASH_BEGIN,
 					      NULL);
@@ -878,58 +868,18 @@ int mdss_mdp_video_reconfigure_splash_done(struct mdss_mdp_ctl *ctl,
 		ret = mdss_mdp_ctl_intf_event(ctl,
 			MDSS_EVENT_CONT_SPLASH_FINISH, NULL);
 	}
-#if !defined(CONFIG_FB_MSM_EDP_SAMSUNG)
 	else
 	{
 		mdss_mdp_ctl_intf_event(ctl, MDSS_EVENT_CONT_SPLASH_BEGIN, NULL);
 		mdp_video_write(ctx, MDSS_MDP_REG_INTF_TIMING_ENGINE_EN, 0);
 		ctx->timegen_en = false;
-		/* Panel off command causes white screen flash at contsplash end so removing for LVDS panels */
-#if !defined(CONFIG_FB_MSM_MDSS_TC_DSI2LVDS_WXGA_PANEL)
 		mdss_mdp_ctl_intf_event(ctl, MDSS_EVENT_PANEL_OFF, NULL);
-#endif
 		mdss_mdp_ctl_intf_event(ctl,MDSS_EVENT_CONT_SPLASH_FINISH, NULL);
 		mdss_mdp_ctl_intf_event(ctl,MDSS_EVENT_UNBLANK, NULL);
 	}
-#endif
-
 error:
 	pdata->panel_info.cont_splash_enabled = 0;
 	return ret;
-}
-
-static void mdss_mdp_video_pingpong_done(void *arg)
-{
-  	struct mdss_mdp_ctl *ctl = arg;
-	struct mdss_mdp_video_ctx *ctx;
-	ctx = (struct mdss_mdp_video_ctx *) ctl->priv_data;
-	pr_info("%s:mdss_mdp_isr 2222\n", __func__);
-
-	if (!ctx) {
-  		pr_err("invalid ctx\n");
-		return;
-	}
-
-	mdss_mdp_irq_disable_nosync(MDSS_MDP_IRQ_PING_PONG_COMP, ctl->num);
-	complete_all(&ctx->pp_comp);
-}
-static int mdss_mdp_video_wait4pingpong(struct mdss_mdp_ctl *ctl, void *arg)
-{
-  	struct mdss_mdp_video_ctx *ctx;
-	int rc = 0;
-	ctx = (struct mdss_mdp_video_ctx *) ctl->priv_data;
-	pr_info("%s:mdss_mdp_isr 1111\n", __func__);
-
-	if (!ctx) {
-  		pr_err("invalid ctx\n");
-		return -ENODEV;
-	}
-	INIT_COMPLETION(ctx->pp_comp);
-
-	rc = wait_for_completion_timeout(
-		&ctx->pp_comp, msecs_to_jiffies(20));
-
-	return rc;
 }
 
 int mdss_mdp_video_start(struct mdss_mdp_ctl *ctl)
@@ -978,18 +928,15 @@ int mdss_mdp_video_start(struct mdss_mdp_ctl *ctl)
 	ctl->priv_data = ctx;
 	ctx->intf_type = ctl->intf_type;
 	init_completion(&ctx->vsync_comp);
-	init_completion(&ctx->pp_comp);
 	spin_lock_init(&ctx->vsync_lock);
 	mutex_init(&ctx->vsync_mtx);
 	atomic_set(&ctx->vsync_ref, 0);
 	INIT_WORK(&ctl->recover_work, recover_underrun_work);
 
 	mdss_mdp_set_intr_callback(MDSS_MDP_IRQ_INTF_VSYNC, ctl->intf_num,
-					mdss_mdp_video_vsync_intr_done, ctl);
+				   mdss_mdp_video_vsync_intr_done, ctl);
 	mdss_mdp_set_intr_callback(MDSS_MDP_IRQ_INTF_UNDER_RUN, ctl->intf_num,
-					mdss_mdp_video_underrun_intr_done, ctl);
-	mdss_mdp_set_intr_callback(MDSS_MDP_IRQ_PING_PONG_COMP,
-					mixer->num,  mdss_mdp_video_pingpong_done, ctl);
+				   mdss_mdp_video_underrun_intr_done, ctl);
 
 	dst_bpp = pinfo->fbc.enabled ? (pinfo->fbc.target_bpp) : (pinfo->bpp);
 
@@ -1027,7 +974,6 @@ int mdss_mdp_video_start(struct mdss_mdp_ctl *ctl)
 	ctl->add_vsync_handler = mdss_mdp_video_add_vsync_handler;
 	ctl->remove_vsync_handler = mdss_mdp_video_remove_vsync_handler;
 	ctl->config_fps_fnc = mdss_mdp_video_config_fps;
-	ctl->wait_video_pingpong = mdss_mdp_video_wait4pingpong;
 
 	return 0;
 }

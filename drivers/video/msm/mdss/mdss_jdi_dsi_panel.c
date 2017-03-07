@@ -66,6 +66,7 @@ static struct dsi_cmd hsync_off_cmds;
 static struct dsi_cmd manufacture_id_cmds;
 static struct candella_lux_map candela_map_table;
 
+static struct mipi_samsung_driver_data msd;
 /*List of supported Panels with HW revision detail
  * (one structure per project)
  * {hw_rev,"label string given in panel dtsi file"}
@@ -284,7 +285,7 @@ static ssize_t mipi_samsung_disp_get_power(struct device *dev,
 	if (unlikely(mfd->key != MFD_KEY))
 		return -EINVAL;
 
-	rc = snprintf((char *)buf, 10, "%d\n", mfd->panel_power_on);
+	rc = snprintf((char *)buf, sizeof(buf), "%d\n", mfd->panel_power_on);
 	pr_info("mipi_samsung_disp_get_power(%d)\n", mfd->panel_power_on);
 
 	return rc;
@@ -351,7 +352,7 @@ static ssize_t mipi_samsung_disp_cabc_show(struct device *dev,
 {
 	int rc;
 
-	rc = snprintf((char *)buf, 10, "%d\n", msd.dstat.cabc_on);
+	rc = snprintf((char *)buf, sizeof(buf), "%d\n", msd.dstat.cabc_on);
 	pr_info("cabc status: %c\n", *buf);
 
 	return rc;
@@ -403,7 +404,7 @@ static ssize_t mipi_samsung_disp_siop_show(struct device *dev,
 {
 	int rc;
 
-	rc = snprintf((char *)buf, 10, "%d\n", msd.dstat.siop_status);
+	rc = snprintf((char *)buf, sizeof(buf), "%d\n", msd.dstat.siop_status);
 	pr_info("siop status: %d\n", *buf);
 
 	return rc;
@@ -473,7 +474,7 @@ static ssize_t mipi_samsung_backlight_show(struct device *dev,
 {
 	int rc;
 
-	rc = snprintf((char *)buf, 10, "%d\n",
+	rc = snprintf((char *)buf, sizeof(buf), "%d\n",
 					msd.dstat.bright_level );
 	pr_info("backlight : %d\n", *buf);
 
@@ -498,7 +499,7 @@ static ssize_t mipi_samsung_auto_brightness_show(struct device *dev,
 {
 	int rc;
 
-	rc = snprintf((char *)buf, 10, "%d\n",
+	rc = snprintf((char *)buf, sizeof(buf), "%d\n",
 					msd.dstat.auto_brightness);
 	pr_info("auto_brightness: %d\n", *buf);
 
@@ -813,10 +814,6 @@ static int mipi_samsung_disp_send_cmd(
 			cmd_size = display_blank_cmd.num_of_cmds;
 			break;
 		case PANEL_BRIGHT_CTRL:
-			if(msd.mfd->blank_mode != 0){
-				pr_err("%s : panel is off state!!\n", __func__);
-				goto panel_power_off;
-			}
 			cmd_desc = brightness_cmds.cmd_desc;
 			cmd_size = make_brightcontrol_set(msd.dstat.bright_level);
 			/* Single Tx use for DSI_VIDEO_MODE Only */
@@ -853,10 +850,6 @@ static int mipi_samsung_disp_send_cmd(
 			break;
 #if defined(AUTO_BRIGHTNESS_CABC_FUNCTION)
 		case PANEL_CABC_ENABLE:
-			if(msd.mfd->blank_mode != 0){
-				pr_err("%s : panel is off state!!\n", __func__);
-				goto panel_power_off;
-			}
 			cmd_desc = cabc_on_cmds.cmd_desc;
 			cmd_size = cabc_on_cmds.num_of_cmds;
 			break;
@@ -909,7 +902,7 @@ static int mipi_samsung_disp_send_cmd(
 
 unknown_command:
 	LCD_DEBUG("Undefined command\n");
-panel_power_off:
+
 	if (lock)
 		mutex_unlock(&msd.lock);
 
@@ -923,41 +916,14 @@ void mdss_dsi_panel_touchsensing(int enable)
 		pr_err("%s: No panel on! %d\n", __func__, enable);
 		return;
 	}
-/*
+
 	if(enable)
 		mipi_samsung_disp_send_cmd(PANEL_TOUCHSENSING_ON, true);
 	else
 		mipi_samsung_disp_send_cmd(PANEL_TOUCHSENSING_OFF, true);
-*/
 
 	pr_info("%s --\n", __func__);
 }
-
-void mdss_dsi_panel_hsync_onoff(bool onoff)
-{
-	struct msm_fb_data_type *mfd = msd.mfd;
-
-	if (mfd && mfd->panel_power_on/* && msd.dstat.on*/)
-	{
-		if( onoff )
-		{
-			msleep(30);
-			mipi_samsung_disp_send_cmd(PANEL_HSYNC_ON, true);
-			pr_info("%s : HSYNC On\n",__func__);
-		}
-		else
-		{
-			mipi_samsung_disp_send_cmd(PANEL_HSYNC_OFF, true);
-			msleep(10);
-			pr_info("%s : HSYNC Off\n",__func__);
-		}
-	}
-	else
-		pr_err("%s : panel power off\n",__func__);
-
-	return;
-}
-EXPORT_SYMBOL(mdss_dsi_panel_hsync_onoff);
 
 static int mdss_dsi_panel_registered(struct mdss_panel_data *pdata)
 {
@@ -1421,9 +1387,6 @@ static int mdss_panel_parse_dt(struct device_node *np,
 	pinfo->bl_min = (!rc ? res[0] : 0);
 	pinfo->bl_max = (!rc ? res[1] : 255);
 	ctrl_pdata->bklt_max = pinfo->bl_max;
-
-	rc = of_property_read_u32(np, "qcom,mdss-brightness-max-level", &tmp);
-	pinfo->brightness_max = (!rc ? tmp : MDSS_MAX_BL_BRIGHTNESS);
 
 	rc = of_property_read_u32(np, "qcom,mdss-pan-dsi-mode", &tmp);
 	pinfo->mipi.mode = (!rc ? tmp : DSI_VIDEO_MODE);

@@ -108,7 +108,7 @@ DECLARE_DELAYED_WORK(uart_awake_workqueue, bluesleep_uart_awake_work);
 #define bluesleep_uart_work()     schedule_delayed_work(&uart_awake_workqueue, 0)
 
 /* 10 second timeout */
-#define TX_TIMER_INTERVAL  1
+#define TX_TIMER_INTERVAL  3
 
 /* state variable names and bit positions */
 #define BT_PROTO	 0x01
@@ -179,8 +179,8 @@ static void hsuart_power(int on)
 {
 	int clk_state;
 
-	if (test_bit(BT_SUSPEND, &flags)) {
-		BT_DBG("it's suspend state. waiting for resume.");
+	if (test_bit(BT_SUSPEND, &flags) && !on) {
+		BT_DBG("hsuart_power OFF- it's suspend state. so return.");
 		return;
 	}
 
@@ -897,13 +897,12 @@ static int bluesleep_resume(struct platform_device *pdev)
 						GPIO_CFG_NO_PULL, GPIO_CFG_16MA), GPIO_CFG_ENABLE);
 		}
 #endif
-
-		clear_bit(BT_SUSPEND, &flags);
 		if ((bsi->uport != NULL) &&
 			(gpio_get_value(bsi->host_wake) == bsi->irq_polarity)) {
 				BT_DBG("bluesleep resume form BT event...");
 				hsuart_power(1);
 		}
+		clear_bit(BT_SUSPEND, &flags);
 	}
 	return 0;
 }
