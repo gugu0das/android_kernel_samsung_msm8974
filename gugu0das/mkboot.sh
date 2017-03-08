@@ -25,9 +25,9 @@ find | cpio -o -H newc | gzip -9 > ramdisk.cpio.gz
 mv ramdisk.cpio.gz ../ramdisk.cpio.gz
 cd $dir
 
-# Touchwiz ks01lteskt Value
+# Touchwiz ks01ltekor Value
 echo "Generating Touchwiz Boot Image"
-./mkbootimg --kernel "$dir/Touchwiz/kernel_ks01lteskt" \
+./mkbootimg --kernel "$dir/Touchwiz/kernel_ks01ltekor" \
 --ramdisk "$dir/Touchwiz/ramdisk.cpio.gz" \
 --dt "$dir/Touchwiz/dt.img" \
 --cmdline "console=null androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F androidboot.bootdevice=msm_sdcc.1 androidboot.selinux=permissive" \
@@ -35,9 +35,9 @@ echo "Generating Touchwiz Boot Image"
 --pagesize 2048 \
 --ramdisk_offset 0x02000000 \
 --tags_offset 0x01e00000 \
---output $dir/Touchwiz/boot_ks01lteskt.img
+--output $dir/Touchwiz/boot_ks01ltekor.img
 cd $dir/Touchwiz
-echo -n "SEANDROIDENFORCE" >> boot_ks01lteskt.img;
+echo -n "SEANDROIDENFORCE" >> boot_ks01ltekor.img;
 
 cd $dir
 
@@ -65,9 +65,9 @@ find | cpio -o -H newc | gzip -9 > ramdisk.cpio.gz
 mv ramdisk.cpio.gz ../ramdisk.cpio.gz
 cd $dir
 
-# MIUI8 ks01lteskt Value
+# MIUI8 ks01ltekor Value
 echo "Generating MIUI8 Boot Image"
-./mkbootimg --kernel "$dir/MIUI8/kernel_ks01lteskt" \
+./mkbootimg --kernel "$dir/MIUI8/kernel_ks01ltekor" \
 --ramdisk "$dir/MIUI8/ramdisk.cpio.gz" \
 --dt "$dir/MIUI8/dt.img" \
 --cmdline "console=null androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F androidboot.bootdevice=msm_sdcc.1 androidboot.selinux=permissive" \
@@ -75,9 +75,9 @@ echo "Generating MIUI8 Boot Image"
 --pagesize 2048 \
 --ramdisk_offset 0x02000000 \
 --tags_offset 0x01e00000 \
---output $dir/MIUI8/boot_ks01lteskt.img
+--output $dir/MIUI8/boot_ks01ltekor.img
 cd $dir/MIUI8
-echo -n "SEANDROIDENFORCE" >> boot_ks01lteskt.img;
+echo -n "SEANDROIDENFORCE" >> boot_ks01ltekor.img;
 
 cd $dir
 
@@ -98,30 +98,30 @@ echo -n "SEANDROIDENFORCE" >> boot_ks01lteeur.img;
 # Move Kernel
 echo "Generating gugu0das Kernel Flashing File"
 cd $dir
-mv Touchwiz/boot_ks01lteskt.img gugu0das_kernel-NX_TW-M-ks01lteskt-Release-1/boot.img
+mv Touchwiz/boot_ks01ltekor.img gugu0das_kernel-NX_TW-M-ks01ltekor-Release-1/boot.img
 mv Touchwiz/boot_ks01lteeur.img gugu0das_kernel-NX_TW-M-ks01lteeur-Release-1/boot.img
-mv MIUI8/boot_ks01lteskt.img gugu0das_kernel-NX_MIUI8-M-ks01lteskt-Release-1/boot.img
+mv MIUI8/boot_ks01ltekor.img gugu0das_kernel-NX_MIUI8-M-ks01ltekor-Release-1/boot.img
 mv MIUI8/boot_ks01lteeur.img gugu0das_kernel-NX_MIUI8-M-ks01lteeur-Release-1/boot.img
 
 # Compression
-cd $dir/gugu0das_kernel-NX_TW-M-ks01lteskt-Release-1
-zip -r gugu0das_kernel-NX_TW-M-ks01lteskt-Release-1.zip ./*
+cd $dir/gugu0das_kernel-NX_TW-M-ks01ltekor-Release-1
+zip -r gugu0das_kernel-NX_TW-M-ks01ltekor-Release-1.zip ./*
 cd $dir/gugu0das_kernel-NX_TW-M-ks01lteeur-Release-1
 zip -r gugu0das_kernel-NX_TW-M-ks01lteeur-Release-1.zip ./*
 
-cd $dir/gugu0das_kernel-NX_MIUI8-M-ks01lteskt-Release-1
-zip -r gugu0das_kernel-NX_MIUI8-M-ks01lteskt-Release-1.zip ./*
+cd $dir/gugu0das_kernel-NX_MIUI8-M-ks01ltekor-Release-1
+zip -r gugu0das_kernel-NX_MIUI8-M-ks01ltekor-Release-1.zip ./*
 cd $dir/gugu0das_kernel-NX_MIUI8-M-ks01lteeur-Release-1
 zip -r gugu0das_kernel-NX_MIUI8-M-ks01lteeur-Release-1.zip ./*
 
 # Move Kernel Flashing File
-cd $dir/gugu0das_kernel-NX_TW-M-ks01lteskt-Release-1
-mv gugu0das_kernel-NX_TW-M-ks01lteskt-Release-1.zip $kernel_dir/gugu0das_kernel-NX_TW-M-ks01lteskt-Release-1.zip
+cd $dir/gugu0das_kernel-NX_TW-M-ks01ltekor-Release-1
+mv gugu0das_kernel-NX_TW-M-ks01ltekor-Release-1.zip $kernel_dir/gugu0das_kernel-NX_TW-M-ks01ltekor-Release-1.zip
 cd $dir/gugu0das_kernel-NX_TW-M-ks01lteeur-Release-1
 mv gugu0das_kernel-NX_TW-M-ks01lteeur-Release-1.zip $kernel_dir/gugu0das_kernel-NX_TW-M-ks01lteeur-Release-1.zip
 
-cd $dir/gugu0das_kernel-NX_MIUI8-M-ks01lteskt-Release-1
-mv gugu0das_kernel-NX_MIUI8-M-ks01lteskt-Release-1.zip $kernel_dir/gugu0das_kernel-NX_MIUI8-M-ks01lteskt-Release-1.zip
+cd $dir/gugu0das_kernel-NX_MIUI8-M-ks01ltekor-Release-1
+mv gugu0das_kernel-NX_MIUI8-M-ks01ltekor-Release-1.zip $kernel_dir/gugu0das_kernel-NX_MIUI8-M-ks01ltekor-Release-1.zip
 cd $dir/gugu0das_kernel-NX_MIUI8-M-ks01lteeur-Release-1
 mv gugu0das_kernel-NX_MIUI8-M-ks01lteeur-Release-1.zip $kernel_dir/gugu0das_kernel-NX_MIUI8-M-ks01lteeur-Release-1.zip
 
