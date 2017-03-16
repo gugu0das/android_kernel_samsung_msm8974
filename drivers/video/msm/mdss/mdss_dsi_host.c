@@ -1345,7 +1345,6 @@ static int mdss_dsi_cmd_dma_tx(struct mdss_dsi_ctrl_pdata *ctrl,
 			pr_err("unable to map dma memory to iommu(%d)\n", ret);
 			return -ENOMEM;
 		}
-		ctrl->dmap_iommu_map = true;
 	} else {
 		addr = tp->dmap;
 	}
@@ -1377,25 +1376,6 @@ static int mdss_dsi_cmd_dma_tx(struct mdss_dsi_ctrl_pdata *ctrl,
 
 	ret = wait_for_completion_timeout(&ctrl->dma_comp,
 				msecs_to_jiffies(DMA_TX_TIMEOUT));
-				
-	if (ret <= 0) {
-		u32 reg_val, status, mask;
-
-		reg_val = MIPI_INP(ctrl->ctrl_base + 0x0110);/* DSI_INTR_CTRL */
-		mask = reg_val & DSI_INTR_CMD_DMA_DONE_MASK;
-		status = mask & reg_val;
-		if (status) {
-			pr_warn("dma tx done but irq not triggered\n");
-			reg_val &= DSI_INTR_MASK_ALL;
-			/* clear CMD DMA isr only */
-			reg_val |= DSI_INTR_CMD_DMA_DONE;
-			MIPI_OUTP(ctrl->ctrl_base + 0x0110, reg_val);
-			mdss_dsi_disable_irq_nosync(ctrl, DSI_MDP_TERM);
-			complete(&ctrl->dma_comp);
-			ret = 1;
-		}
-	}
-				
 	if (ret == 0) {
 		pr_err("dma tx timeout!!\n");
 			mdss_dsi_debug_check_te(pdata);
@@ -1412,11 +1392,9 @@ static int mdss_dsi_cmd_dma_tx(struct mdss_dsi_ctrl_pdata *ctrl,
 	} else
 		ret = tp->len;
 
-	if (ctrl->dmap_iommu_map) {
+	if (is_mdss_iommu_attached())
 		msm_iommu_unmap_contig_buffer(addr,
 			mdss_get_iommu_domain(domain), 0, size);
-		ctrl->dmap_iommu_map = false;
-	}
 
 	return ret;
 }
@@ -1653,9 +1631,6 @@ int mdss_dsi_cmdlist_commit(struct mdss_dsi_ctrl_pdata *ctrl, int from_mdp)
 	int ret = -EINVAL;
 	int rc = 0;
 
-	if (mdss_get_sd_client_cnt())
-		return -EPERM;
-
 #ifndef CONFIG_LCD_FORCE_VIDEO_MODE
 	if (ctrl->panel_mode == DSI_CMD_MODE)
 		mdss_mdp_clk_ctrl(1, false);
@@ -1699,10 +1674,6 @@ int mdss_dsi_cmdlist_commit(struct mdss_dsi_ctrl_pdata *ctrl, int from_mdp)
 		mutex_unlock(&ctrl->cmd_mutex);
 		return rc;
 	}
-
-	if (req->flags & CMD_REQ_HS_MODE)
-		mdss_dsi_set_tx_power_mode(0, &ctrl->panel_data);
-
 	if (req->flags & CMD_REQ_RX)
 			ret = mdss_dsi_cmdlist_rx(ctrl, req);
 #if !defined(CONFIG_MACH_S3VE3G_EUR)
@@ -1711,10 +1682,6 @@ int mdss_dsi_cmdlist_commit(struct mdss_dsi_ctrl_pdata *ctrl, int from_mdp)
 #endif
 	else
 		ret = mdss_dsi_cmdlist_tx(ctrl, req);
-
-	if (req->flags & CMD_REQ_HS_MODE)
-		mdss_dsi_set_tx_power_mode(1, &ctrl->panel_data);
-
 	mdss_iommu_ctrl(0);
 	mdss_dsi_clk_ctrl(ctrl, DSI_ALL_CLKS, 0);
 	mdss_bus_scale_set_quota(MDSS_HW_DSI0, 0, 0);

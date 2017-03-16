@@ -137,9 +137,9 @@ struct msm_mdp_interface {
 	int (*lut_update)(struct msm_fb_data_type *mfd, struct fb_cmap *cmap);
 	int (*do_histogram)(struct msm_fb_data_type *mfd,
 				struct mdp_histogram *hist);
-	int (*ad_calc_bl)(struct msm_fb_data_type *mfd, int bl_in,
-		int *bl_out, bool *bl_out_notify);
-	int (*ad_shutdown_cleanup)(struct msm_fb_data_type *mfd);
+	int (*update_ad_input)(struct msm_fb_data_type *mfd);
+	int (*ad_attenuate_bl)(u32 bl, u32 *bl_out,
+			struct msm_fb_data_type *mfd);
 	int (*panel_register_done)(struct mdss_panel_data *pdata);
 	u32 (*fb_stride)(u32 fb_index, u32 xres, int bpp);
 	int (*splash_init_fnc)(struct msm_fb_data_type *mfd);
@@ -285,8 +285,13 @@ static inline void mdss_fb_update_notify_update(struct msm_fb_data_type *mfd)
 	}
 }
 #ifdef CONFIG_FB_MSM_CAMERA_CSC
+#if defined(CONFIG_SEC_KS01_PROJECT)|| defined(CONFIG_SEC_ATLANTIC_PROJECT)
+extern u8 prev_csc_update;
+#endif
 extern u8 csc_update;
-extern u8 csc_change;
+#if !defined(CONFIG_SEC_KS01_PROJECT) && !defined(CONFIG_SEC_ATLANTIC_PROJECT)
+extern u8 pre_csc_update;
+#endif
 #endif
 
 #if defined (CONFIG_FB_MSM_MDSS_DBG_SEQ_TICK)

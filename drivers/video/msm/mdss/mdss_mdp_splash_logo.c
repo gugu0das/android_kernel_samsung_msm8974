@@ -467,6 +467,7 @@ static int mdss_mdp_splash_ctl_cb(struct notifier_block *self,
 
 	if (!sinfo->frame_done_count) {
 		mdss_mdp_splash_unmap_splash_mem(mfd);
+		mdss_mdp_splash_cleanup(mfd, false);
 	/* wait for 2 frame done events before releasing memory */
 	} else if (sinfo->frame_done_count > MAX_FRAME_DONE_COUNT_WAIT &&
 			sinfo->splash_thread) {
