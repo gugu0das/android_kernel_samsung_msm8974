@@ -326,14 +326,17 @@ void mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 		msleep(50);
 
 	} else {
+		usleep_range(3000, 3000);
 		if (gpio_is_valid(ctrl_pdata->disp_en_gpio2)) {
 			pr_info("%s : Set Low TCON Enable GPIO (1.8V) \n", __func__);
 			gpio_set_value((ctrl_pdata->disp_en_gpio2), 0);
 		}
+		msleep(10);
 		if (gpio_is_valid(ctrl_pdata->disp_en_gpio)) {
 			pr_info("%s : Set Low LCD Enable GPIO (3.3V) \n", __func__);
 			gpio_set_value((ctrl_pdata->disp_en_gpio), 0);
 		}
+		msleep(300); // Chagall Panel issue
 	}
 
 }
@@ -994,6 +997,9 @@ static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata,
 {
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
 
+	//Update the bl_level in msd.dstat.bright_level even if Panel is not ON
+	msd.dstat.bright_level = bl_level;
+
 	/*Dont need to send backlight command if display off*/
 	if (msd.mfd->resume_state != MIPI_RESUME_STATE)
 		return;
@@ -1074,7 +1080,7 @@ static int mipi_samsung_disp_send_cmd(
 			if (msd.dstat.bright_level)
 				msd.dstat.recent_bright_level = msd.dstat.bright_level;
 #if defined(HBM_RE)
-			if(msd.dstat.auto_brightness == 6) {
+			if(msd.dstat.auto_brightness >= 6 && msd.dstat.bright_level == 255) {
 				cmd_size = make_brightcontrol_hbm_set();
 				msd.dstat.hbm_mode = 1;
 			} else {
@@ -1354,6 +1360,8 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 	// to prevent splash during wakeup
 	if (msd.dstat.recent_bright_level) {
 		msd.dstat.bright_level = msd.dstat.recent_bright_level;
+		if(!msd.mfd->unset_bl_level)
+			msd.mfd->unset_bl_level = msd.dstat.bright_level;
 		mipi_samsung_disp_send_cmd(PANEL_BRIGHT_CTRL, true);
 	}
 
@@ -1605,8 +1613,7 @@ error2:
 
 }
 
-
-int mdss_panel_get_dst_fmt(u32 bpp, char mipi_mode, u32 pixel_packing,
+int mdss_panel_dt_get_dst_fmt(u32 bpp, char mipi_mode, u32 pixel_packing,
 				char *dst_format)
 {
 	int rc = 0;
@@ -1963,7 +1970,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 */
 
 	mdss_panel_parse_te_params(np, pinfo);
-	
+
 	rc = of_property_read_u32(np,
 		"qcom,mdss-pan-dsi-dst-format", &tmp);
 	pinfo->mipi.dst_format =
@@ -2689,7 +2696,10 @@ static ssize_t mipi_samsung_aid_log_show(struct device *dev,
 	int rc = 0;
 
 	if (msd.dstat.is_smart_dim_loaded)
-		msd.sdimconf->print_aid_log();
+	{
+		if(msd.sdimconf->print_aid_log)
+		        msd.sdimconf->print_aid_log();
+	}
 	else
 		pr_err("smart dim is not loaded..\n");
 

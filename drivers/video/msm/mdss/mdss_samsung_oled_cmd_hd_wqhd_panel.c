@@ -29,6 +29,7 @@
 #include "mdss_dsi.h"
 #include "mdss_samsung_oled_cmd_hd_wqhd_panel.h"
 #include "mdss_fb.h"
+#include "mdss_debug.h"
 
 #if defined(CONFIG_MDNIE_LITE_TUNING)
 #include "mdnie_lite_tuning.h"
@@ -271,6 +272,7 @@ static int mipi_samsung_disp_send_cmd(
 		unsigned char lock);
 extern void mdss_dsi_panel_touchsensing(int enable);
 int get_lcd_attached(void);
+void set_samsung_lcd_attached(int set);
 int get_lcd_id(void);
 int get_lcd_ldi_info(void);
 #if defined(ALPM_MODE)
@@ -1345,6 +1347,11 @@ void mdss_dsi_cmds_send(struct mdss_dsi_ctrl_pdata *ctrl, struct dsi_cmd_desc *c
 {
 	struct dcs_cmd_req cmdreq;
 
+	if (!get_lcd_id()) {
+		printk("%s: get_my_check(0)!\n",__func__);
+		return;
+	}
+
 	if (get_lcd_attached() == 0) {
 		printk("%s: get_lcd_attached(0)!\n",__func__);
 		return;
@@ -1375,6 +1382,11 @@ u32 mdss_dsi_cmd_receive(struct mdss_dsi_ctrl_pdata *ctrl, struct dsi_cmd_desc *
 {
     struct dcs_cmd_req cmdreq;
 	char *buf;
+
+	if (!get_lcd_id()) {
+		printk("%s: get_my_check(0)!\n",__func__);
+		return -ENODEV;
+	}
 
 	if (get_lcd_attached() == 0) {
 		printk("%s: get_lcd_attached(0)!\n",__func__);
@@ -1584,6 +1596,10 @@ static unsigned int mipi_samsung_manufacture_id(struct mdss_panel_data *pdata)
 	return 0x501401;
 #endif
 
+	if (!get_lcd_id()) {
+		printk("%s: get_my_check(0)!\n",__func__);
+		return -ENODEV;
+	}
 
 	if (get_lcd_attached() == 0)
 	{
@@ -1672,6 +1688,11 @@ static int mipi_samsung_disp_send_cmd(
 	int i,j;
 #endif
 
+	if (!get_lcd_id()) {
+		printk("%s: get_my_check(0)!\n",__func__);
+		return -ENODEV;
+	}
+
 	if (get_lcd_attached() == 0) {
 		printk("%s: get_lcd_attached(0)!\n",__func__);
 		return -ENODEV;
@@ -1748,7 +1769,7 @@ static int mipi_samsung_disp_send_cmd(
 			msd.dstat.recent_bright_level = msd.dstat.bright_level;
 
 #if defined(HBM_RE)
-			if(msd.dstat.auto_brightness == 6) {
+			if(msd.dstat.auto_brightness >= 6 && msd.dstat.bright_level == 255) {
 				cmd_size = make_brightcontrol_hbm_set(msd.dstat.bright_level);
 				msd.dstat.hbm_mode = 1;
 			} else {
@@ -1958,6 +1979,11 @@ static void mdss_dsi_panel_read_func(struct mdss_panel_data *pdata)
 #if defined(CAMERA_LP)
 	return;
 #endif
+
+	if (!get_lcd_id()) {
+		printk("%s: get_my_check(0)!\n",__func__);
+		return;
+	}
 
 	if (get_lcd_attached() == 0) {
 		pr_err("%s: get_lcd_attached(0)!\n",__func__);
@@ -2624,7 +2650,7 @@ error2:
 
 }
 
-int mdss_panel_get_dst_fmt(u32 bpp, char mipi_mode, u32 pixel_packing,
+int mdss_panel_dt_get_dst_fmt(u32 bpp, char mipi_mode, u32 pixel_packing,
 				char *dst_format)
 {
 	int rc = 0;
@@ -5970,6 +5996,8 @@ int mdss_dsi_panel_init(struct device_node *node, struct mdss_dsi_ctrl_pdata *ct
 	static const char *panel_name;
 	bool cont_splash_enabled;
 	struct mdss_panel_info *pinfo;
+	struct mdss_debug_data *mdd =
+				(struct mdss_debug_data *)((mdss_mdp_get_mdata())->debug_inf.debug_data);
 
 	pr_debug("%s: ++ \n", __func__);
 
@@ -6062,7 +6090,28 @@ int mdss_dsi_panel_init(struct device_node *node, struct mdss_dsi_ctrl_pdata *ct
 	register_early_suspend(&msd.early_suspend);
 #endif
 
-	pr_debug("%s : --\n",__func__);
+	if (get_lcd_attached() == 0) {
+		pr_err("%s: get_lcd_attached(0)!.. set VIDEO mode..\n",__func__);
+
+		pinfo->type = MIPI_VIDEO_PANEL;
+		pinfo->mipi.mode = DSI_VIDEO_MODE;
+		pinfo->mipi.traffic_mode = DSI_BURST_MODE;
+		pinfo->mipi.bllp_power_stop = true;
+		pinfo->mipi.te_sel = 0;
+		pinfo->mipi.vsync_enable = 0;
+		pinfo->mipi.hw_vsync_mode = 0;
+		pinfo->mipi.force_clk_lane_hs = true;
+		pinfo->mipi.dst_format = DSI_VIDEO_DST_FORMAT_RGB888;
+		pinfo->cont_splash_enabled = false;
+		pinfo->esd_check_enabled = false;
+		ctrl_pdata->on_cmds.link_state = DSI_LP_MODE;
+		ctrl_pdata->off_cmds.link_state = DSI_LP_MODE;
+		mdd->logd.xlog_enable = 0;
+
+		set_samsung_lcd_attached(1);
+	}
+
+	pr_info("%s : --\n",__func__);
 
 	return 0;
 }
@@ -6084,6 +6133,12 @@ int get_samsung_lcd_attached(void)
 	return lcd_attached;
 
 }
+
+void set_samsung_lcd_attached(int set)
+{
+	lcd_attached = set;
+}
+
 EXPORT_SYMBOL(get_samsung_lcd_attached);
 
 static int __init lcd_panel_info(char *mode)

@@ -397,7 +397,7 @@ void mdss_dsi_tc358764_panel_reset(struct mdss_panel_data *pdata, int enable)
 		}
 		if (gpio_is_valid(msd.lcd_en_gpio))
 			gpio_set_value_cansleep(msd.lcd_en_gpio,0);
-#if defined(CONFIG_MACH_MATISSELTE_USC)
+#if defined(CONFIG_MACH_MATISSELTE_USC) || defined(CONFIG_MACH_MATISSELTE_OPEN)
 		if (gpio_is_valid(msd.bl_ldi_en)) {
 			gpio_tlmm_config(GPIO_CFG(msd.bl_ldi_en, 0,
 				GPIO_CFG_INPUT,GPIO_CFG_NO_PULL,GPIO_CFG_2MA),
@@ -709,7 +709,7 @@ static int mdss_dsi_parse_dcs_cmds(struct device_node *np,
 
 	return 0;
 }
-static int mdss_panel_dt_get_dst_fmt(u32 bpp, char mipi_mode, u32 pixel_packing,
+int mdss_panel_dt_get_dst_fmt(u32 bpp, char mipi_mode, u32 pixel_packing,
 				char *dst_format)
 {
 	int rc = 0;
