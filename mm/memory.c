@@ -1731,6 +1731,8 @@ split_fallthrough:
 	pte = *ptep;
 	if (!pte_present(pte))
 		goto no_page;
+	if ((flags & FOLL_WRITE) && !pte_write(pte))
+		goto unlock;
 
 	page = vm_normal_page(vma, address, pte);
 	if ((flags & FOLL_WRITE) && !can_follow_write_pte(pte, page, flags)) {
@@ -1803,7 +1805,7 @@ split_fallthrough:
 			unlock_page(page);
 		}
 	}
-
+unlock:
 	pte_unmap_unlock(ptep, ptl);
 out:
 	return page;
@@ -2056,7 +2058,7 @@ int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
 				 */
 				if ((ret & VM_FAULT_WRITE) &&
 				    !(vma->vm_flags & VM_WRITE))
-					foll_flags |= FOLL_COW;
+					foll_flags &= ~FOLL_WRITE;
 
 				cond_resched();
 			}
