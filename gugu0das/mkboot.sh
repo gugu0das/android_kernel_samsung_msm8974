@@ -98,29 +98,29 @@ echo -n "SEANDROIDENFORCE" >> boot_ks01lteeur.img;
 # Move Kernel
 echo "Generating gugu0das Kernel Flashing File"
 cd $dir
-mv Touchwiz/boot_ks01ltekor.img gugu0das_kernel-NX_TW-M-ks01ltekor-Release-2-BetaProgram_2017.03.24/boot.img
-mv Touchwiz/boot_ks01lteeur.img gugu0das_kernel-NX_TW-M-ks01lteeur-Release-2-BetaProgram_2017.03.24/boot.img
-mv MIUI8/boot_ks01ltekor.img gugu0das_kernel-NX_MIUI8-M-ks01ltekor-Release-2-BetaProgram_2017.03.24/boot.img
-mv MIUI8/boot_ks01lteeur.img gugu0das_kernel-NX_MIUI8-M-ks01lteeur-Release-2-BetaProgram_2017.03.24/boot.img
+mv Touchwiz/boot_ks01ltekor.img gugu0das_kernel-TW-M-ks01ltekor-Release-2/boot.img
+mv Touchwiz/boot_ks01lteeur.img gugu0das_kernel-TW-M-ks01lteeur-Release-2/boot.img
+mv MIUI8/boot_ks01ltekor.img gugu0das_kernel-MIUI8-M-ks01ltekor-Release-2/boot.img
+mv MIUI8/boot_ks01lteeur.img gugu0das_kernel-MIUI8-M-ks01lteeur-Release-2/boot.img
 
 # Compression
-cd $dir/gugu0das_kernel-NX_TW-M-ks01ltekor-Release-2-BetaProgram_2017.03.24
-zip -r gugu0das_kernel-NX_TW-M-ks01ltekor-Release-2-BetaProgram_2017.03.24.zip ./*
-cd $dir/gugu0das_kernel-NX_TW-M-ks01lteeur-Release-2-BetaProgram_2017.03.24
-zip -r gugu0das_kernel-NX_TW-M-ks01lteeur-Release-2-BetaProgram_2017.03.24.zip ./*
+cd $dir/gugu0das_kernel-TW-M-ks01ltekor-Release-2
+zip -r gugu0das_kernel-TW-M-ks01ltekor-Release-2.zip ./*
+cd $dir/gugu0das_kernel-TW-M-ks01lteeur-Release-2
+zip -r gugu0das_kernel-TW-M-ks01lteeur-Release-2.zip ./*
 
-cd $dir/gugu0das_kernel-NX_MIUI8-M-ks01ltekor-Release-2-BetaProgram_2017.03.24
-zip -r gugu0das_kernel-NX_MIUI8-M-ks01ltekor-Release-2-BetaProgram_2017.03.24.zip ./*
-cd $dir/gugu0das_kernel-NX_MIUI8-M-ks01lteeur-Release-2-BetaProgram_2017.03.24
-zip -r gugu0das_kernel-NX_MIUI8-M-ks01lteeur-Release-2-BetaProgram_2017.03.24.zip ./*
+cd $dir/gugu0das_kernel-MIUI8-M-ks01ltekor-Release-2
+zip -r gugu0das_kernel-MIUI8-M-ks01ltekor-Release-2.zip ./*
+cd $dir/gugu0das_kernel-MIUI8-M-ks01lteeur-Release-2
+zip -r gugu0das_kernel-MIUI8-M-ks01lteeur-Release-2.zip ./*
 
 # Move Kernel Flashing File
-cd $dir/gugu0das_kernel-NX_TW-M-ks01ltekor-Release-2-BetaProgram_2017.03.24
-mv gugu0das_kernel-NX_TW-M-ks01ltekor-Release-2-BetaProgram_2017.03.24.zip $kernel_dir/gugu0das_kernel-NX_TW-M-ks01ltekor-Release-2-BetaProgram_2017.03.24.zip
-cd $dir/gugu0das_kernel-NX_TW-M-ks01lteeur-Release-2-BetaProgram_2017.03.24
-mv gugu0das_kernel-NX_TW-M-ks01lteeur-Release-2-BetaProgram_2017.03.24.zip $kernel_dir/gugu0das_kernel-NX_TW-M-ks01lteeur-Release-2-BetaProgram_2017.03.24.zip
+cd $dir/gugu0das_kernel-TW-M-ks01ltekor-Release-2
+mv gugu0das_kernel-TW-M-ks01ltekor-Release-2.zip $kernel_dir/gugu0das_kernel-TW-M-ks01ltekor-Release-2.zip
+cd $dir/gugu0das_kernel-TW-M-ks01lteeur-Release-2
+mv gugu0das_kernel-TW-M-ks01lteeur-Release-2.zip $kernel_dir/gugu0das_kernel-TW-M-ks01lteeur-Release-2.zip
 
-cd $dir/gugu0das_kernel-NX_MIUI8-M-ks01ltekor-Release-2-BetaProgram_2017.03.24
-mv gugu0das_kernel-NX_MIUI8-M-ks01ltekor-Release-2-BetaProgram_2017.03.24.zip $kernel_dir/gugu0das_kernel-NX_MIUI8-M-ks01ltekor-Release-2-BetaProgram_2017.03.24.zip
-cd $dir/gugu0das_kernel-NX_MIUI8-M-ks01lteeur-Release-2-BetaProgram_2017.03.24
-mv gugu0das_kernel-NX_MIUI8-M-ks01lteeur-Release-2-BetaProgram_2017.03.24.zip $kernel_dir/gugu0das_kernel-NX_MIUI8-M-ks01lteeur-Release-2-BetaProgram_2017.03.24.zip
+cd $dir/gugu0das_kernel-MIUI8-M-ks01ltekor-Release-2
+mv gugu0das_kernel-MIUI8-M-ks01ltekor-Release-2.zip $kernel_dir/gugu0das_kernel-MIUI8-M-ks01ltekor-Release-2.zip
+cd $dir/gugu0das_kernel-MIUI8-M-ks01lteeur-Release-2
+mv gugu0das_kernel-MIUI8-M-ks01lteeur-Release-2.zip $kernel_dir/gugu0das_kernel-MIUI8-M-ks01lteeur-Release-2.zip
