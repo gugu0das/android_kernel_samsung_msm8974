@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -18,7 +18,6 @@
 #include <linux/err.h>
 
 #include "kgsl.h"
-#include "kgsl_sharedmem.h"
 #include "adreno.h"
 #include "adreno_ringbuffer.h"
 #include "adreno_trace.h"
@@ -146,155 +145,63 @@ static int fault_detect_read_compare(struct kgsl_device *device)
 	return ret;
 }
 
-static int _check_context_queue(struct adreno_context *drawctxt)
-{
-	int ret;
-
-	spin_lock(&drawctxt->lock);
-
-	/*
-	 * Wake up if there is room in the context or if the whole thing got
-	 * invalidated while we were asleep
-	 */
-
-	if (drawctxt->state == ADRENO_CONTEXT_STATE_INVALID)
-		ret = 1;
-	else
-		ret = drawctxt->queued < _context_cmdqueue_size ? 1 : 0;
-
-	spin_unlock(&drawctxt->lock);
-
-	return ret;
-}
-
-/**
- * _retire_marker() - Retire a marker command batch without sending it to the
- * hardware
- * @cmdbatch: Pointer to the cmdbatch to retire
- *
- * In some cases marker commands can be retired by the software without going to
- * the GPU.  In those cases, update the memstore from the CPU, kick off the
- * event engine to handle expired events and destroy the command batch.
- */
-static void _retire_marker(struct kgsl_cmdbatch *cmdbatch)
-{
-	struct kgsl_context *context = cmdbatch->context;
-	struct kgsl_device *device = context->device;
-
-	/*
-	 * Write the start and end timestamp to the memstore to keep the
-	 * accounting sane
-	 */
-	kgsl_sharedmem_writel(device, &device->memstore,
-		KGSL_MEMSTORE_OFFSET(context->id, soptimestamp),
-		cmdbatch->timestamp);
-
-	kgsl_sharedmem_writel(device, &device->memstore,
-		KGSL_MEMSTORE_OFFSET(context->id, eoptimestamp),
-		cmdbatch->timestamp);
-
-
-	/* Retire pending GPU events for the object */
-	kgsl_process_event_group(device, &context->events);
-
-	trace_adreno_cmdbatch_retired(cmdbatch, -1);
-	kgsl_cmdbatch_destroy(cmdbatch);
-}
-
-/*
- * return true if this is a marker command and the dependent timestamp has
- * retired
- */
-static bool _marker_expired(struct kgsl_cmdbatch *cmdbatch)
-{
-	return (cmdbatch->flags & KGSL_CMDBATCH_MARKER) &&
-		kgsl_check_timestamp(cmdbatch->device, cmdbatch->context,
-			cmdbatch->marker_timestamp);
-}
-
-static inline void _pop_cmdbatch(struct adreno_context *drawctxt)
-{
-	drawctxt->cmdqueue_head = CMDQUEUE_NEXT(drawctxt->cmdqueue_head,
-		ADRENO_CONTEXT_CMDQUEUE_SIZE);
-	drawctxt->queued--;
-}
-
-static struct kgsl_cmdbatch *_get_cmdbatch(struct adreno_context *drawctxt)
-{
-	struct kgsl_cmdbatch *cmdbatch = NULL;
-	bool pending = false;
-
-	if (drawctxt->cmdqueue_head == drawctxt->cmdqueue_tail)
-		return NULL;
-
-	cmdbatch = drawctxt->cmdqueue[drawctxt->cmdqueue_head];
-
-	/* Check to see if this is a marker we can skip over */
-	if (cmdbatch->flags & KGSL_CMDBATCH_MARKER) {
-		if (_marker_expired(cmdbatch)) {
-			_pop_cmdbatch(drawctxt);
-			_retire_marker(cmdbatch);
-
-			/* Get the next thing in the queue */
-			return _get_cmdbatch(drawctxt);
-		}
-
-		/*
-		 * If the marker isn't expired but the SKIP bit is set
-		 * then there are real commands following this one in
-		 * the queue.  This means that we need to dispatch the
-		 * command so that we can keep the timestamp accounting
-		 * correct.  If skip isn't set then we block this queue
-		 * until the dependent timestamp expires
-		 */
-
-		if (!test_bit(CMDBATCH_FLAG_SKIP, &cmdbatch->priv))
-			pending = true;
-	}
-
-	spin_lock(&cmdbatch->lock);
-	if (!list_empty(&cmdbatch->synclist))
-		pending = true;
-	spin_unlock(&cmdbatch->lock);
-
-	/*
-	 * If changes are pending and the canary timer hasn't been
-	 * started yet, start it
-	 */
-	if (pending) {
-		/*
-		 * If syncpoints are pending start the canary timer if
-		 * it hasn't already been started
-		 */
-		if (!timer_pending(&cmdbatch->timer))
-			mod_timer(&cmdbatch->timer, jiffies + (5 * HZ));
-
-		return ERR_PTR(-EAGAIN);
-	}
-
-	/*
-	 * Otherwise, delete the timer to make sure it is good
-	 * and dead before queuing the buffer
-	 */
-	del_timer_sync(&cmdbatch->timer);
-
-	_pop_cmdbatch(drawctxt);
-	return cmdbatch;
-}
-
 /**
  * adreno_dispatcher_get_cmdbatch() - Get a new command from a context queue
  * @drawctxt: Pointer to the adreno draw context
  *
  * Dequeue a new command batch from the context list
  */
-static struct kgsl_cmdbatch *adreno_dispatcher_get_cmdbatch(
+static inline struct kgsl_cmdbatch *adreno_dispatcher_get_cmdbatch(
 		struct adreno_context *drawctxt)
 {
-	struct kgsl_cmdbatch *cmdbatch;
+	struct kgsl_cmdbatch *cmdbatch = NULL;
+	int pending;
 
 	spin_lock(&drawctxt->lock);
-	cmdbatch = _get_cmdbatch(drawctxt);
+	if (drawctxt->cmdqueue_head != drawctxt->cmdqueue_tail) {
+		cmdbatch = drawctxt->cmdqueue[drawctxt->cmdqueue_head];
+
+		/*
+		 * Don't dequeue a cmdbatch that is still waiting for other
+		 * events
+		 */
+
+		spin_lock(&cmdbatch->lock);
+		pending = list_empty(&cmdbatch->synclist) ? 0 : 1;
+
+		/*
+		 * If changes are pending and the canary timer hasn't been
+		 * started yet, start it
+		 */
+		if (pending) {
+			/*
+			 * If syncpoints are pending start the canary timer if
+			 * it hasn't already been started
+			 */
+			if (!timer_pending(&cmdbatch->timer))
+				mod_timer(&cmdbatch->timer, jiffies + (5 * HZ));
+			spin_unlock(&cmdbatch->lock);
+		} else {
+			/*
+			 * Otherwise, delete the timer to make sure it is good
+			 * and dead before queuing the buffer
+			 */
+			spin_unlock(&cmdbatch->lock);
+			del_timer_sync(&cmdbatch->timer);
+		}
+
+		if (pending) {
+			cmdbatch = ERR_PTR(-EAGAIN);
+			goto done;
+		}
+
+		drawctxt->cmdqueue_head =
+			CMDQUEUE_NEXT(drawctxt->cmdqueue_head,
+			ADRENO_CONTEXT_CMDQUEUE_SIZE);
+		drawctxt->queued--;
+	}
+
+done:
 	spin_unlock(&drawctxt->lock);
 
 	return cmdbatch;
@@ -314,17 +221,13 @@ static inline int adreno_dispatcher_requeue_cmdbatch(
 		struct adreno_context *drawctxt, struct kgsl_cmdbatch *cmdbatch)
 {
 	unsigned int prev;
-	struct kgsl_device *device;
 	spin_lock(&drawctxt->lock);
 
 	if (kgsl_context_detached(&drawctxt->base) ||
 		drawctxt->state == ADRENO_CONTEXT_STATE_INVALID) {
 		spin_unlock(&drawctxt->lock);
-		device = cmdbatch->device;
 		/* get rid of this cmdbatch since the context is bad */
-		kgsl_mutex_lock(&device->mutex, &device->mutex_owner);
 		kgsl_cmdbatch_destroy(cmdbatch);
-		kgsl_mutex_unlock(&device->mutex, &device->mutex_owner);
 		return -EINVAL;
 	}
 
@@ -433,7 +336,7 @@ static int sendcmd(struct adreno_device *adreno_dev,
 		return ret;
 	}
 
-	trace_adreno_cmdbatch_submitted(cmdbatch, (int) dispatcher->inflight);
+	trace_adreno_cmdbatch_submitted(cmdbatch, dispatcher->inflight);
 
 	dispatcher->cmdqueue[dispatcher->tail] = cmdbatch;
 	dispatcher->tail = (dispatcher->tail + 1) %
@@ -510,11 +413,8 @@ static int dispatcher_context_sendcmds(struct adreno_device *adreno_dev,
 		 * against the burst for the context
 		 */
 
-		if (cmdbatch->flags & KGSL_CMDBATCH_SYNC) {
-			struct kgsl_device *device = cmdbatch->device;
-			kgsl_mutex_lock(&device->mutex, &device->mutex_owner);
+		if (cmdbatch->flags & KGSL_CONTEXT_SYNC) {
 			kgsl_cmdbatch_destroy(cmdbatch);
-			kgsl_mutex_unlock(&device->mutex, &device->mutex_owner);
 			continue;
 		}
 
@@ -541,11 +441,12 @@ static int dispatcher_context_sendcmds(struct adreno_device *adreno_dev,
 	}
 
 	/*
-	 * Wake up any snoozing threads if we have consumed any real commands
-	 * or marker commands and we have room in the context queue.
+	 * If the context successfully submitted commands there will be room
+	 * in the context queue so wake up any snoozing threads that want to
+	 * submit commands
 	 */
 
-	if (_check_context_queue(drawctxt))
+	if (count)
 		wake_up_all(&drawctxt->wq);
 
 	/*
@@ -668,6 +569,27 @@ int adreno_dispatcher_issuecmds(struct adreno_device *adreno_dev)
 	return ret;
 }
 
+static int _check_context_queue(struct adreno_context *drawctxt)
+{
+	int ret;
+
+	spin_lock(&drawctxt->lock);
+
+	/*
+	 * Wake up if there is room in the context or if the whole thing got
+	 * invalidated while we were asleep
+	 */
+
+	if (drawctxt->state == ADRENO_CONTEXT_STATE_INVALID)
+		ret = 1;
+	else
+		ret = drawctxt->queued < _context_cmdqueue_size ? 1 : 0;
+
+	spin_unlock(&drawctxt->lock);
+
+	return ret;
+}
+
 /**
  * get_timestamp() - Return the next timestamp for the context
  * @drawctxt - Pointer to an adreno draw context struct
@@ -681,7 +603,7 @@ static int get_timestamp(struct adreno_context *drawctxt,
 		struct kgsl_cmdbatch *cmdbatch, unsigned int *timestamp)
 {
 	/* Synchronization commands don't get a timestamp */
-	if (cmdbatch->flags & KGSL_CMDBATCH_SYNC) {
+	if (cmdbatch->flags & KGSL_CONTEXT_SYNC) {
 		*timestamp = 0;
 		return 0;
 	}
@@ -726,20 +648,11 @@ int adreno_dispatcher_queue_cmd(struct adreno_device *adreno_dev,
 	}
 
 	/*
-	 * Force the preamble for this submission only - this is usually
-	 * requested by the dispatcher as part of fault recovery
+	 * After skipping to the end of the frame we need to force the preamble
+	 * to run (if it exists) regardless of the context state.
 	 */
 
 	if (test_and_clear_bit(ADRENO_CONTEXT_FORCE_PREAMBLE, &drawctxt->priv))
-		set_bit(CMDBATCH_FLAG_FORCE_PREAMBLE, &cmdbatch->priv);
-
-	/*
-	 * Force the premable if set from userspace in the context or cmdbatch
-	 * flags
-	 */
-
-	if ((drawctxt->base.flags & KGSL_CONTEXT_CTX_SWITCH) ||
-		(cmdbatch->flags & KGSL_CMDBATCH_CTX_SWITCH))
 		set_bit(CMDBATCH_FLAG_FORCE_PREAMBLE, &cmdbatch->priv);
 
 	/*
@@ -756,7 +669,7 @@ int adreno_dispatcher_queue_cmd(struct adreno_device *adreno_dev,
 		 * for the dispatcher to continue submitting
 		 */
 
-		if (cmdbatch->flags & KGSL_CMDBATCH_END_OF_FRAME) {
+		if (cmdbatch->flags & KGSL_CONTEXT_END_OF_FRAME) {
 			clear_bit(ADRENO_CONTEXT_SKIP_EOF, &drawctxt->priv);
 
 			/*
@@ -807,32 +720,6 @@ int adreno_dispatcher_queue_cmd(struct adreno_device *adreno_dev,
 
 	cmdbatch->timestamp = *timestamp;
 
-	if (cmdbatch->flags & KGSL_CMDBATCH_MARKER) {
-
-		/*
-		 * See if we can fastpath this thing - if nothing is queued
-		 * and nothing is inflight retire without bothering the GPU
-		 */
-
-		if (!drawctxt->queued && kgsl_check_timestamp(cmdbatch->device,
-			cmdbatch->context, drawctxt->queued_timestamp)) {
-			trace_adreno_cmdbatch_queued(cmdbatch,
-				drawctxt->queued);
-
-			_retire_marker(cmdbatch);
-			spin_unlock(&drawctxt->lock);
-			return 0;
-		}
-
-		/*
-		 * Remember the last queued timestamp - the marker will block
-		 * until that timestamp is expired (unless another command
-		 * comes along and forces the marker to execute)
-		 */
-
-		cmdbatch->marker_timestamp = drawctxt->queued_timestamp;
-	}
-
 	/* SYNC commands have timestamp 0 and will get optimized out anyway */
 	if (!(cmdbatch->flags & KGSL_CONTEXT_SYNC))
 		drawctxt->queued_timestamp = *timestamp;
@@ -851,24 +738,6 @@ int adreno_dispatcher_queue_cmd(struct adreno_device *adreno_dev,
 	drawctxt->cmdqueue[drawctxt->cmdqueue_tail] = cmdbatch;
 	drawctxt->cmdqueue_tail = (drawctxt->cmdqueue_tail + 1) %
 		ADRENO_CONTEXT_CMDQUEUE_SIZE;
-
-	/*
-	 * If this is a real command then we need to force any markers queued
-	 * before it to dispatch to keep time linear - set the skip bit so
-	 * the commands get NOPed.
-	 */
-
-	if (!(cmdbatch->flags & KGSL_CMDBATCH_MARKER)) {
-		unsigned int i = drawctxt->cmdqueue_head;
-
-		while (i != drawctxt->cmdqueue_tail) {
-			if (drawctxt->cmdqueue[i]->flags & KGSL_CMDBATCH_MARKER)
-				set_bit(CMDBATCH_FLAG_SKIP,
-					&drawctxt->cmdqueue[i]->priv);
-
-			i = CMDQUEUE_NEXT(i, ADRENO_CONTEXT_CMDQUEUE_SIZE);
-		}
-	}
 
 	drawctxt->queued++;
 	trace_adreno_cmdbatch_queued(cmdbatch, drawctxt->queued);
@@ -940,11 +809,11 @@ static void mark_guilty_context(struct kgsl_device *device, unsigned int id)
 static void cmdbatch_skip_ib(struct kgsl_cmdbatch *cmdbatch,
 				unsigned int base)
 {
-	struct kgsl_memobj_node *ib;
+	int i;
 
-	list_for_each_entry(ib, &cmdbatch->cmdlist, node) {
-		if (ib->gpuaddr == base) {
-			ib->priv |= MEMOBJ_SKIP;
+	for (i = 0; i < cmdbatch->ibcount; i++) {
+		if (cmdbatch->ibdesc[i].gpuaddr == base) {
+			cmdbatch->ibdesc[i].sizedwords = 0;
 			if (base)
 				return;
 		}
@@ -1019,7 +888,7 @@ static void cmdbatch_skip_frame(struct kgsl_cmdbatch *cmdbatch,
 		if (skip) {
 			set_bit(CMDBATCH_FLAG_SKIP, &replay[i]->priv);
 
-			if (replay[i]->flags & KGSL_CMDBATCH_END_OF_FRAME)
+			if (replay[i]->flags & KGSL_CONTEXT_END_OF_FRAME)
 				skip = 0;
 		} else {
 			set_bit(CMDBATCH_FLAG_FORCE_PREAMBLE, &replay[i]->priv);
@@ -1062,8 +931,11 @@ static void remove_invalidated_cmdbatches(struct kgsl_device *device,
 			drawctxt->state == ADRENO_CONTEXT_STATE_INVALID) {
 			replay[i] = NULL;
 
-			kgsl_cancel_events_timestamp(device,
-				&cmd->context->events, cmd->timestamp);
+			kgsl_mutex_lock(&device->mutex, &device->mutex_owner);
+			kgsl_cancel_events_timestamp(device, cmd->context,
+				cmd->timestamp);
+			kgsl_mutex_unlock(&device->mutex, &device->mutex_owner);
+
 			kgsl_cmdbatch_destroy(cmd);
 		}
 	}
@@ -1217,8 +1089,7 @@ static int dispatcher_do_fault(struct kgsl_device *device)
 		kgsl_device_snapshot(device, 1);
 	}
 
-    kgsl_mutex_unlock(&device->mutex, &device->mutex_owner);
-
+	kgsl_mutex_unlock(&device->mutex, &device->mutex_owner);
 
 	/* Allocate memory to store the inflight commands */
 	replay = kzalloc(sizeof(*replay) * dispatcher->inflight, GFP_KERNEL);
@@ -1226,7 +1097,6 @@ static int dispatcher_do_fault(struct kgsl_device *device)
 	if (replay == NULL) {
 		unsigned int ptr = dispatcher->head;
 
-		kgsl_mutex_lock(&device->mutex, &device->mutex_owner);
 		/* Recovery failed - mark everybody guilty */
 		mark_guilty_context(device, 0);
 
@@ -1246,7 +1116,6 @@ static int dispatcher_do_fault(struct kgsl_device *device)
 		 */
 
 		count = 0;
-		kgsl_mutex_unlock(&device->mutex, &device->mutex_owner);
 		goto replay;
 	}
 
@@ -1304,9 +1173,7 @@ static int dispatcher_do_fault(struct kgsl_device *device)
 			cmdbatch->context->id, cmdbatch->timestamp);
 
 		mark_guilty_context(device, cmdbatch->context->id);
-		kgsl_mutex_lock(&device->mutex, &device->mutex_owner);
 		adreno_drawctxt_invalidate(device, cmdbatch->context);
-		kgsl_mutex_unlock(&device->mutex, &device->mutex_owner);
 	}
 
 	/*
@@ -1415,9 +1282,7 @@ static int dispatcher_do_fault(struct kgsl_device *device)
 	mark_guilty_context(device, cmdbatch->context->id);
 
 	/* Invalidate the context */
-	kgsl_mutex_lock(&device->mutex, &device->mutex_owner);
 	adreno_drawctxt_invalidate(device, cmdbatch->context);
-	kgsl_mutex_unlock(&device->mutex, &device->mutex_owner);
 
 
 replay:
@@ -1436,10 +1301,8 @@ replay:
 	/* If adreno_reset() fails then what hope do we have for the future? */
 	BUG_ON(ret);
 
-	kgsl_mutex_lock(&device->mutex, &device->mutex_owner);
 	/* Remove any pending command batches that have been invalidated */
 	remove_invalidated_cmdbatches(device, replay, count);
-	kgsl_mutex_unlock(&device->mutex, &device->mutex_owner);
 
 	/* Replay the pending command buffers */
 	for (i = 0; i < count; i++) {
@@ -1481,11 +1344,9 @@ replay:
 			/* Mark this context as guilty (failed recovery) */
 			mark_guilty_context(device, replay[i]->context->id);
 
-			kgsl_mutex_lock(&device->mutex, &device->mutex_owner);
 			adreno_drawctxt_invalidate(device, replay[i]->context);
 			remove_invalidated_cmdbatches(device, &replay[i],
 				count - i);
-			kgsl_mutex_unlock(&device->mutex, &device->mutex_owner);
 		}
 	}
 
@@ -1581,7 +1442,7 @@ static void adreno_dispatcher_work(struct kthread_work *work)
 			}
 
 			trace_adreno_cmdbatch_retired(cmdbatch,
-				(int) (dispatcher->inflight - 1));
+				dispatcher->inflight - 1);
 
 			/* Reduce the number of inflight command batches */
 			dispatcher->inflight--;
@@ -1593,10 +1454,8 @@ static void adreno_dispatcher_work(struct kthread_work *work)
 			dispatcher->head = CMDQUEUE_NEXT(dispatcher->head,
 				ADRENO_DISPATCH_CMDQUEUE_SIZE);
 
-			kgsl_mutex_lock(&device->mutex, &device->mutex_owner);
 			/* Destroy the retired command batch */
 			kgsl_cmdbatch_destroy(cmdbatch);
-			kgsl_mutex_unlock(&device->mutex, &device->mutex_owner);
 
 			/* Update the expire time for the next command batch */
 
@@ -1672,7 +1531,7 @@ static void adreno_dispatcher_work(struct kthread_work *work)
 	 */
 	if (dispatcher->inflight == 0 && count) {
 		kgsl_mutex_lock(&device->mutex, &device->mutex_owner);
-		queue_work(device->work_queue, &device->event_work);
+		queue_work(device->work_queue, &device->ts_expired_ws);
 		kgsl_mutex_unlock(&device->mutex, &device->mutex_owner);
 	}
 
@@ -1847,19 +1706,16 @@ void adreno_dispatcher_stop(struct adreno_device *adreno_dev)
 void adreno_dispatcher_close(struct adreno_device *adreno_dev)
 {
 	struct adreno_dispatcher *dispatcher = &adreno_dev->dispatcher;
-	struct kgsl_device *device = &adreno_dev->dev;
 
 	mutex_lock(&dispatcher->mutex);
 	del_timer_sync(&dispatcher->timer);
 	del_timer_sync(&dispatcher->fault_timer);
 
-	kgsl_mutex_lock(&device->mutex, &device->mutex_owner);
 	while (dispatcher->head != dispatcher->tail) {
 		kgsl_cmdbatch_destroy(dispatcher->cmdqueue[dispatcher->head]);
 		dispatcher->head = (dispatcher->head + 1)
 			% ADRENO_DISPATCH_CMDQUEUE_SIZE;
 	}
-	kgsl_mutex_unlock(&device->mutex, &device->mutex_owner);
 
 	mutex_unlock(&dispatcher->mutex);
 
