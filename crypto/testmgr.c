@@ -1904,6 +1904,21 @@ static const struct alg_test_desc alg_test_descs[] = {
 			}
 		}
 	}, {
+		.alg = "chacha20",
+		.test = alg_test_skcipher,
+		.suite = {
+			.cipher = {
+				.enc = {
+					.vecs = chacha20_enc_tv_template,
+					.count = CHACHA20_ENC_TEST_VECTORS
+				},
+				.dec = {
+					.vecs = chacha20_enc_tv_template,
+					.count = CHACHA20_ENC_TEST_VECTORS
+				},
+			}
+		}
+	}, {
 		.alg = "crc32c",
 		.test = alg_test_crc32c,
 		.fips_allowed = 1,
