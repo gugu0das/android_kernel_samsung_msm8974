@@ -691,10 +691,3 @@ static void __exit chacha20poly1305_module_exit(void)
 
 module_init(chacha20poly1305_module_init);
 module_exit(chacha20poly1305_module_exit);
-
-MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Martin Willi <martin@strongswan.org>");
-MODULE_DESCRIPTION("ChaCha20-Poly1305 AEAD");
-MODULE_ALIAS_CRYPTO("chacha20poly1305");
-MODULE_ALIAS_CRYPTO("rfc7539");
-MODULE_ALIAS_CRYPTO("rfc7539esp");
