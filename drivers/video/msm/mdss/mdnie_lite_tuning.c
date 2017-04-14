@@ -211,13 +211,8 @@ const char accessibility_name[ACCESSIBILITY_MAX][20] = {
 	defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQXGA_S6E3HA1_PT_PANEL) || defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_VIDEO_FULL_HD_PT_PANEL)
 	"SCREEN_CURTAIN_MODE",
 #endif
-#if defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQHD_PT_PANEL) || \
-	defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_FULL_HD_PT_PANEL)|| defined (CONFIG_FB_MSM_MIPI_MAGNA_OCTA_CMD_HD_PT_PANEL) ||\
-	defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL)	|| defined(CONFIG_FB_MSM_MIPI_MAGNA_OCTA_VIDEO_WXGA_PT_DUAL_PANEL) ||\
-	defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQXGA_S6E3HA1_PT_PANEL)
 	"GRAYSCALE_MODE",
 	"GRAY_NEGATIVE_MODE",
-#endif
 #endif /* NEGATIVE_COLOR_USE_ACCESSIBILLITY */
 };
 
@@ -1024,10 +1019,6 @@ static ssize_t accessibility_store(struct device *dev,
 		mdnie_tun_state.accessibility = SCREEN_CURTAIN;
 	}
 #endif
-#if defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQHD_PT_PANEL) || \
-	defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_FULL_HD_PT_PANEL)|| defined (CONFIG_FB_MSM_MIPI_MAGNA_OCTA_CMD_HD_PT_PANEL) ||\
-	defined(CONFIG_FB_MSM_MDSS_MAGNA_OCTA_VIDEO_720P_PANEL)	|| defined(CONFIG_FB_MSM_MIPI_MAGNA_OCTA_VIDEO_WXGA_PT_DUAL_PANEL) ||\
-	defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_WQXGA_S6E3HA1_PT_PANEL)
 	else if (cmd_value == GRAYSCALE) {
 		if(mdnie_tun_state.accessibility == GRAYSCALE)
 			return size;
@@ -1038,7 +1029,6 @@ static ssize_t accessibility_store(struct device *dev,
 			return size;
 		mdnie_tun_state.accessibility = GRAYSCALE_NEGATIVE;
 	}
-#endif
 #endif /* NEGATIVE_COLOR_USE_ACCESSIBILLITY */
 	else if (cmd_value == ACCESSIBILITY_OFF) {
 		if(mdnie_tun_state.accessibility == ACCESSIBILITY_OFF)
@@ -2344,4 +2334,3 @@ void mDNIe_Set_Mode(enum Lcd_mDNIe_UI mode)
 		mode, mdnie_tun_state.background);
 }
 #endif
-
