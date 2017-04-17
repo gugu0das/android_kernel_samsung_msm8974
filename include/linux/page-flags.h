@@ -116,6 +116,9 @@ enum pageflags {
 #ifdef CONFIG_KSM_CHECK_PAGE
 	PG_ksm_scan0,		/* page has been scanned by even KSM cycle */
 #endif
+#ifdef CONFIG_SDP
+	PG_sensitive,
+#endif
 	__NR_PAGEFLAGS,
 #if defined(CONFIG_CMA_PAGE_COUNTING)
 	PG_cma,			/* page in CMA area */
