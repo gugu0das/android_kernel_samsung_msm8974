@@ -66,8 +66,6 @@ static const struct file_operations stlog_operations = {
 	.llseek		= stlog_llseek,
 };
 
-static const char DEF_STLOG_VER_STR[] = "1.0.2\n";
-
 static ssize_t stlog_ver_read(struct file *file, char __user *buf,
 			 size_t count, loff_t *ppos)
 {
