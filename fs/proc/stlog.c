@@ -40,7 +40,7 @@ static ssize_t stlog_read(struct file *file, char __user *buf,
 			 size_t count, loff_t *ppos)
 {
 	//Blocking mode for runtime debugging
-	if (!(file->f_flags & O_NONBLOCK))
+	if (file->f_flags & O_NONBLOCK)
 		return do_stlog(STLOG_ACTION_READ, buf, count, STLOG_FROM_PROC);
 
 	//Non-blocking mode, print once, consume all the buffers
