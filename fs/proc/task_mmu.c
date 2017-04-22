@@ -451,31 +451,18 @@ static void smaps_pte_entry(pte_t ptent, unsigned long addr,
 {
 	struct mem_size_stats *mss = walk->private;
 	struct vm_area_struct *vma = mss->vma;
-	struct page *page = NULL;
+	struct page *page;
 	int mapcount;
 
-	if (pte_present(ptent)) {
-		page = vm_normal_page(vma, addr, ptent);
-	} else if (is_swap_pte(ptent)) {
-		swp_entry_t swpent = pte_to_swp_entry(ptent);
-
-		if (!non_swap_entry(swpent)) {
-			int mapcount;
-
-			mss->swap += ptent_size;
-			mapcount = swp_swapcount(swpent);
-			if (mapcount >= 2) {
-				u64 pss_delta = (u64)ptent_size << PSS_SHIFT;
-
-				do_div(pss_delta, mapcount);
-				mss->swap_pss += pss_delta;
-			} else {
-				mss->swap_pss += (u64)ptent_size << PSS_SHIFT;
-			}
-		} else if (is_migration_entry(swpent))
-			page = migration_entry_to_page(swpent);
+	if (is_swap_pte(ptent)) {
+		mss->swap += ptent_size;
+		return;
 	}
 
+	if (!pte_present(ptent))
+		return;
+
+	page = vm_normal_page(vma, addr, ptent);
 	if (!page)
 		return;
 
