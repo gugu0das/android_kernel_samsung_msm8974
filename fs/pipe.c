@@ -1278,11 +1278,6 @@ long pipe_fcntl(struct file *file, unsigned int cmd, unsigned long arg)
 		if (!capable(CAP_SYS_RESOURCE) && size > pipe_max_size) {
 			ret = -EPERM;
 			goto out;
-		} else if ((too_many_pipe_buffers_hard(pipe->user) ||
-			    too_many_pipe_buffers_soft(pipe->user)) &&
-		           !capable(CAP_SYS_RESOURCE) && !capable(CAP_SYS_ADMIN)) {
-			ret = -EPERM;
-			goto out;
 		}
 		ret = pipe_set_size(pipe, nr_pages);
 		break;
