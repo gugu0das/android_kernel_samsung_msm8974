@@ -939,12 +939,6 @@ const struct file_operations rdwr_pipefifo_fops = {
 	.fasync		= pipe_rdwr_fasync,
 };
 
-static void account_pipe_buffers(struct pipe_inode_info *pipe,
-                                 unsigned long old, unsigned long new)
-{
-	atomic_long_add(new - old, &pipe->user->pipe_bufs);
-}
-
 static bool too_many_pipe_buffers_soft(struct user_struct *user)
 {
 	return pipe_user_pages_soft &&
