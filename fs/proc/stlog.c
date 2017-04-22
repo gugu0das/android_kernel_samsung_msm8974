@@ -523,6 +523,7 @@ static int stlog_print_all(char __user *buf, int size, bool clear)
 int do_stlog(int type, char __user *buf, int len, bool from_file)
 {
 	int error=0;
+	char *kern_buf=0;
 
 	switch (type) {
 	case STLOG_ACTION_CLOSE:	/* Close log */
@@ -589,6 +590,7 @@ int do_stlog(int type, char __user *buf, int len, bool from_file)
 		break;
 	}
 out:
+	kfree(kern_buf);
 	return error;
 }
 
