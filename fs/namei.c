@@ -1249,7 +1249,7 @@ static inline int handle_dots(struct nameidata *nd, int type)
 			if (follow_dotdot_rcu(nd))
 				return -ECHILD;
 		} else
-			return follow_dotdot(nd);
+			follow_dotdot(nd);
 	}
 	return 0;
 }
