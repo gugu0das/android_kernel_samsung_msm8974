@@ -30,13 +30,6 @@ static int stlog_open(struct inode * inode, struct file * file)
 	return do_stlog(STLOG_ACTION_OPEN, NULL, 0, STLOG_FROM_PROC);
 }
 
-static int stlog_open_pipe(struct inode * inode, struct file * file)
-{
-	//Open as blocking mode for runtime debugging
-	file->f_flags &= ~(O_NONBLOCK);
-	return do_stlog(STLOG_ACTION_OPEN, NULL, 0, STLOG_FROM_PROC);
-}
-
 static int stlog_release(struct inode * inode, struct file * file)
 {
 	(void) do_stlog(STLOG_ACTION_CLOSE, NULL, 0, STLOG_FROM_PROC);
