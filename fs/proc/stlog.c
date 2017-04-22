@@ -66,10 +66,6 @@ static const struct file_operations stlog_operations = {
 	.llseek		= stlog_llseek,
 };
 
-static const struct file_operations stlog_ver_operations = {
-	.read		= stlog_ver_read,
-};
-
 static int __init stlog_init(void)
 {
 	proc_create("stlog", S_IRUGO, NULL, &stlog_operations);
