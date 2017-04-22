@@ -625,13 +625,6 @@ const struct file_operations proc_pid_smaps_operations = {
 	.release	= seq_release_private,
 };
 
-const struct file_operations proc_pid_smaps_simple_operations = {
-	.open		= proc_pid_smaps_simple_open,
-	.read		= seq_read,
-	.llseek		= seq_lseek,
-	.release	= single_release,
-};
-
 const struct file_operations proc_tid_smaps_operations = {
 	.open		= tid_smaps_open,
 	.read		= seq_read,
