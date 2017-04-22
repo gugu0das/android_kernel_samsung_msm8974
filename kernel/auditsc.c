@@ -86,9 +86,6 @@
 /* no execve audit message should be longer than this (userspace limits) */
 #define MAX_EXECVE_AUDIT_LEN 7500
 
-/* max length to print of cmdline/proctitle value during audit */
-#define MAX_PROCTITLE_AUDIT_LEN 128
-
 /* number of audit rules */
 int audit_n_rules = 1;
 
