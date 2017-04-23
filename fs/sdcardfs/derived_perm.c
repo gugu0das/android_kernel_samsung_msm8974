@@ -90,11 +90,7 @@ void get_derived_permission(struct dentry *parent, struct dentry *dentry)
 				/* App-specific directories inside; let anyone traverse */
 				info->perm = PERM_ANDROID;
 				info->under_android = true;
-			} else if (!strcasecmp(dentry->d_name.name, "knox")) {
-				info->perm = PERM_ANDROID_KNOX;
-				info->d_gid = AID_SDCARD_R;
-				info->under_android = false;
-           		}
+			}
 			break;
 		case PERM_ANDROID:
 			if (!strcasecmp(dentry->d_name.name, "data")) {
