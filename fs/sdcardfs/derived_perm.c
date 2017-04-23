@@ -146,9 +146,6 @@ void fix_derived_permission(struct inode *inode) {
         /* Top of multi-user view should always be visible to ensure
          * secondary users can traverse inside. */
 		visible_mode = 00711;
-	} else if (info->perm == PERM_ANDROID_KNOX_PACKAGE_DATA
-	        && !info->under_android) {
-		visible_mode = visible_mode & ~00006;
 	} else if (info->under_android) {
 		if (info->d_gid == AID_SDCARD_RW) {
 			visible_mode = visible_mode & ~00006;
