@@ -509,8 +509,6 @@ ecryptfs_create(struct inode *directory_inode, struct dentry *ecryptfs_dentry,
 		goto out;
 	}
 	d_instantiate(ecryptfs_dentry, ecryptfs_inode);
-	if(d_unhashed(ecryptfs_dentry))
-		d_rehash(ecryptfs_dentry);
 	unlock_new_inode(ecryptfs_inode);
 out:
 	return rc;
