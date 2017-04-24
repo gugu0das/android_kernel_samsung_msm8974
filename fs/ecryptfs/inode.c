@@ -154,8 +154,6 @@ static int ecryptfs_interpose(struct dentry *lower_dentry,
 		return PTR_ERR(inode);
 
 	d_instantiate(dentry, inode);
-	if(d_unhashed(dentry))
-		d_rehash(dentry);
 
 #ifdef CONFIG_SDP
 	if(S_ISDIR(inode->i_mode) && dentry) {
