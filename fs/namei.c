@@ -2758,8 +2758,6 @@ static long do_rmdir(int dfd, const char __user *pathname)
 	char * name;
 	struct dentry *dentry;
 	struct nameidata nd;
-	char *path_buf = NULL;
-	char *propagate_path = NULL;
 
 	error = user_path_parent(dfd, pathname, &nd, &name);
 	if (error)
@@ -2794,10 +2792,6 @@ static long do_rmdir(int dfd, const char __user *pathname)
 	error = security_path_rmdir(&nd.path, dentry);
 	if (error)
 		goto exit4;
-	if (nd.path.dentry->d_sb->s_op->unlink_callback) {
-		path_buf = kmalloc(PATH_MAX, GFP_KERNEL);
-		propagate_path = dentry_path_raw(dentry, path_buf, PATH_MAX);
-	}
 	error = vfs_rmdir(nd.path.dentry->d_inode, dentry);
 exit4:
 	mnt_drop_write(nd.path.mnt);
@@ -2805,14 +2799,6 @@ exit3:
 	dput(dentry);
 exit2:
 	mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
-	if (path_buf && !error) {
-		nd.path.dentry->d_sb->s_op->unlink_callback(nd.path.dentry->d_sb,
-			propagate_path);
-	}
-	if (path_buf) {
-		kfree(path_buf);
-		path_buf = NULL;
-	}
 exit1:
 	path_put(&nd.path);
 	putname(name);
