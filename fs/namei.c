@@ -38,6 +38,9 @@
 
 #include "internal.h"
 #include "mount.h"
+#ifdef CONFIG_SDCARD_FS
+#include "sdcardfs/sdcardfs.h"
+#endif
 
 /* [Feb-1997 T. Schoebel-Theuer]
  * Fundamental changes in the pathname lookup mechanisms (namei)
