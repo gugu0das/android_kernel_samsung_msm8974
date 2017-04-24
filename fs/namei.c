@@ -2859,15 +2859,18 @@ int vfs_unlink(struct inode *dir, struct dentry *dentry)
  * writeout happening, and we don't want to prevent access to the directory
  * while waiting on the I/O.
  */
-static long do_unlinkat(int dfd, const char __user *pathname)
+long do_unlinkat(int dfd, const char __user *pathname, bool propagate)
 {
 	int error;
 	char *name;
 	struct dentry *dentry;
 	struct nameidata nd;
 	struct inode *inode = NULL;
+#ifdef CONFIG_SDCARD_FS
+	/* temp code to avoid issue */
 	char *path_buf = NULL;
 	char *propagate_path = NULL;
+#endif
 
 	error = user_path_parent(dfd, pathname, &nd, &name);
 	if (error)
@@ -2889,10 +2892,20 @@ static long do_unlinkat(int dfd, const char __user *pathname)
 		inode = dentry->d_inode;
 		if (!inode)
 			goto slashes;
-		if (inode->i_sb->s_op->unlink_callback) {
-			path_buf = kmalloc(PATH_MAX, GFP_KERNEL);
-			propagate_path = dentry_path_raw(dentry, path_buf, PATH_MAX);
+#ifdef CONFIG_SDCARD_FS
+		/* temp code to avoid issue */
+		if (inode->i_sb->s_op->unlink_callback && propagate) {
+			struct inode *lower_inode = inode;
+			while (lower_inode->i_op->get_lower_inode) {
+				if (inode->i_sb->s_magic == SDCARDFS_SUPER_MAGIC
+						&& SDCARDFS_SB(inode->i_sb)->options.label) {
+					path_buf = kmalloc(PATH_MAX, GFP_KERNEL);
+					propagate_path = dentry_path_raw(dentry, path_buf, PATH_MAX);
+				}
+				lower_inode = lower_inode->i_op->get_lower_inode(lower_inode);
+			}
 		}
+#endif
 		ihold(inode);
 		error = mnt_want_write(nd.path.mnt);
 		if (error)
@@ -2907,13 +2920,13 @@ exit3:
 		dput(dentry);
 	}
 	mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
-	if (path_buf && !error) {
-		inode->i_sb->s_op->unlink_callback(inode->i_sb, propagate_path);
-	}
-	if (path_buf) {
+#ifdef CONFIG_SDCARD_FS
+	/* temp code to avoid issue */
+	if (path_buf && !IS_ERR(path_buf) && !error && propagate) {
+		inode->i_sb->s_op->unlink_callback(inode, propagate_path);
 		kfree(path_buf);
-		path_buf = NULL;
 	}
+#endif
 	if (inode)
 		iput(inode);	/* truncate the inode here */
 exit1:
