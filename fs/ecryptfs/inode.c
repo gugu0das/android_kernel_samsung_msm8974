@@ -48,16 +48,6 @@
 #include "ecryptfs_dlp.h"
 #endif
 
-/* Do not directly use this function, use REVERT_CRED() instead. */
-void ecryptfs_revert_fsids(const struct cred * old_cred)
-{
-	const struct cred * cur_cred; 
-
-	cur_cred = current->cred; 
-	revert_creds(old_cred); 
-	put_cred(cur_cred); 
-}
-
 #ifndef CONFIG_SDP
 static struct dentry *lock_parent(struct dentry *dentry)
 {
