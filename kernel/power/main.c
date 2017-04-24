@@ -17,8 +17,8 @@
 #include <linux/seq_file.h>
 #include <linux/hrtimer.h>
 
-//#define CONFIG_SUSPEND_HELPER //etinum.test
-#define SUSPEND_WAKEUP_BOOST
+#define CONFIG_SUSPEND_HELPER //etinum.test
+//#define SUSPEND_WAKEUP_BOOST
 
 #ifdef SUSPEND_WAKEUP_BOOST
 #include <linux/sched.h>
