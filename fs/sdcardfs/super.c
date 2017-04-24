@@ -276,4 +276,5 @@ const struct super_operations sdcardfs_sops = {
 	.alloc_inode	= sdcardfs_alloc_inode,
 	.destroy_inode	= sdcardfs_destroy_inode,
 	.drop_inode	= generic_delete_inode,
+	.unlink_callback = sdcardfs_propagate_unlink,
 };
