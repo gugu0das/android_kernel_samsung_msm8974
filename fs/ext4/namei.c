@@ -1923,22 +1923,25 @@ static int ext4_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
 	struct buffer_head *dir_block = NULL;
 	struct ext4_dir_entry_2 *de;
 	unsigned int blocksize = dir->i_sb->s_blocksize;
-	int err, credits, retries = 0;
+	int err, retries = 0;
 
 	if (EXT4_DIR_LINK_MAX(dir))
 		return -EMLINK;
 
 	dquot_initialize(dir);
 
-	credits = (EXT4_DATA_TRANS_BLOCKS(dir->i_sb) +
-		   EXT4_INDEX_EXTRA_TRANS_BLOCKS + 3 +
-		   EXT4_MAXQUOTAS_INIT_BLOCKS(dir->i_sb));
-
 retry:
-	inode = ext4_new_inode_start_handle(dir, S_IFDIR | mode,
-					    &dentry->d_name,
-					    0, NULL, credits);
-	handle = ext4_journal_current_handle();
+	handle = ext4_journal_start(dir, EXT4_DATA_TRANS_BLOCKS(dir->i_sb) +
+					EXT4_INDEX_EXTRA_TRANS_BLOCKS + 3 +
+					EXT4_MAXQUOTAS_INIT_BLOCKS(dir->i_sb));
+	if (IS_ERR(handle))
+		return PTR_ERR(handle);
+
+	if (IS_DIRSYNC(dir))
+		ext4_handle_sync(handle);
+
+	inode = ext4_new_inode(handle, dir, S_IFDIR | mode,
+			       &dentry->d_name, 0, NULL);
 	err = PTR_ERR(inode);
 	if (IS_ERR(inode))
 		goto out_stop;
@@ -1990,12 +1993,9 @@ out_clear_inode:
 		goto out_clear_inode;
 	d_instantiate(dentry, inode);
 	unlock_new_inode(inode);
-	if (IS_DIRSYNC(dir))
-		ext4_handle_sync(handle);
 out_stop:
 	brelse(dir_block);
-	if (handle)
-		ext4_journal_stop(handle);
+	ext4_journal_stop(handle);
 	if (err == -ENOSPC && ext4_should_retry_alloc(dir->i_sb, &retries))
 		goto retry;
 	return err;
