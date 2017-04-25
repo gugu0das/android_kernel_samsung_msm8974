@@ -1890,9 +1890,6 @@ extern struct inode *ext4_new_inode(handle_t *, struct inode *, umode_t,
 				    const struct qstr *qstr, __u32 goal,
 				    uid_t *owner);
 
-#define ext4_new_inode_start_handle(dir, mode, qstr, goal, owner, nblocks) \
-	__ext4_new_inode(NULL, (dir), (mode), (qstr), (goal), (owner), (nblocks))
-
 extern void ext4_free_inode(handle_t *, struct inode *);
 extern struct inode * ext4_orphan_get(struct super_block *, unsigned long);
 extern unsigned long ext4_count_free_inodes(struct super_block *);
