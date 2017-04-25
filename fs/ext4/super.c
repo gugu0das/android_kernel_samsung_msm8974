@@ -2385,13 +2385,6 @@ static ssize_t lifetime_write_kbytes_show(struct ext4_attr *a,
 			  EXT4_SB(sb)->s_sectors_written_start) >> 1)));
 }
 
-static ssize_t r_blocks_count_show(struct ext4_attr *a,
-		struct ext4_sb_info *sbi, char *buf)
-{
-	return snprintf(buf, PAGE_SIZE, "%llu\n",
-		(unsigned long long) atomic64_read(&sbi->s_r_blocks_count));
-}
-
 static ssize_t r_blocks_count_store(struct ext4_attr *a,
 		struct ext4_sb_info *sbi, const char *buf, size_t count)
 {
