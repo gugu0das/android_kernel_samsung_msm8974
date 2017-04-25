@@ -297,7 +297,6 @@ out:
 			fatal = err;
 		ext4_mark_super_dirty(sb);
 	} else {
-		print_bh(sb, bitmap_bh, 0, EXT4_BLOCK_SIZE(sb));
 		ext4_error(sb, "bit already cleared for inode %lu", ino);
 	}
 
