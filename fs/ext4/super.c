@@ -414,9 +414,6 @@ static void __save_error_info(struct super_block *sb, const char *func,
 static void save_error_info(struct super_block *sb, const char *func,
 			    unsigned int line)
 {
-	if (sb->s_flags & MS_RDONLY)
-		return;
-
 	__save_error_info(sb, func, line);
 	ext4_commit_super(sb, 1);
 }
