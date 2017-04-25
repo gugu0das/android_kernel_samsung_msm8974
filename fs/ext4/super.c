@@ -499,25 +499,16 @@ void __ext4_error(struct super_block *sb, const char *function,
 {
 	struct va_format vaf;
 	va_list args;
-	char *page_buf;
 
 	va_start(args, fmt);
 	vaf.fmt = fmt;
 	vaf.va = &args;
 	printk(KERN_CRIT "EXT4-fs error (device %s): %s:%d: comm %s: %pV\n",
 	       sb->s_id, function, line, current->comm, &vaf);
-	page_buf = (char *)__get_free_page(GFP_ATOMIC);
-	if (page_buf)
-		sprintf(page_buf, "%s %s:%u: %pV",
-					"***Keep this device after RDX, do not reboot***", function, line, &vaf);
-	else
-		printk(KERN_ERR "__ext4_error: failed to allocate page buf for panic msg\n");
 	va_end(args);
 	save_error_info(sb, function, line);
 
-	ext4_handle_error(sb, page_buf);
-	if (page_buf)
-		free_page((unsigned long)page_buf);
+	ext4_handle_error(sb);
 }
 
 void ext4_error_inode(struct inode *inode, const char *function,
