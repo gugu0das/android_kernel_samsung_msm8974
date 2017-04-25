@@ -617,9 +617,8 @@ static int find_group_other(struct super_block *sb, struct inode *parent,
  * For other inodes, search forward from the parent directory's block
  * group to find a free inode.
  */
-struct inode *__ext4_new_inode(handle_t *handle, struct inode *dir,
-			       umode_t mode, const struct qstr *qstr,
-			       __u32 goal, uid_t *owner, int nblocks)
+struct inode *ext4_new_inode(handle_t *handle, struct inode *dir, umode_t mode,
+			     const struct qstr *qstr, __u32 goal, uid_t *owner)
 {
 	struct super_block *sb;
 	struct buffer_head *inode_bitmap_bh = NULL;
