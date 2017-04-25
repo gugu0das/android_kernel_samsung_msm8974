@@ -2289,6 +2289,7 @@ static int ext4_rmdir(struct inode *dir, struct dentry *dentry)
 	ext4_mark_inode_dirty(handle, dir);
 
 end_rmdir:
+	ext4_journal_stop(handle);
 	brelse(bh);
 	return retval;
 }
