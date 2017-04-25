@@ -2240,6 +2240,10 @@ static int ext4_rmdir(struct inode *dir, struct dentry *dentry)
 	dquot_initialize(dir);
 	dquot_initialize(dentry->d_inode);
 
+	handle = ext4_journal_start(dir, EXT4_DELETE_TRANS_BLOCKS(dir->i_sb));
+	if (IS_ERR(handle))
+		return PTR_ERR(handle);
+
 	retval = -ENOENT;
 #ifdef CONFIG_SDCARD_FS_CI_SEARCH
 	bh = ext4_find_entry(dir, &dentry->d_name, &de, NULL);
@@ -2251,6 +2255,9 @@ static int ext4_rmdir(struct inode *dir, struct dentry *dentry)
 	if (!bh)
 		goto end_rmdir;
 
+	if (IS_DIRSYNC(dir))
+		ext4_handle_sync(handle);
+
 	inode = dentry->d_inode;
 
 	retval = -EIO;
@@ -2260,16 +2267,6 @@ static int ext4_rmdir(struct inode *dir, struct dentry *dentry)
 	retval = -ENOTEMPTY;
 	if (!empty_dir(inode))
 		goto end_rmdir;
-
-	handle = ext4_journal_start(dir, EXT4_DELETE_TRANS_BLOCKS(dir->i_sb));
-	if (IS_ERR(handle)) {
-		retval = PTR_ERR(handle);
-		handle = NULL;
-		goto end_rmdir;
-	}
-
-	if (IS_DIRSYNC(dir))
-		ext4_handle_sync(handle);
 
 	retval = ext4_delete_entry(handle, dir, de, bh);
 	if (retval)
@@ -2293,8 +2290,6 @@ static int ext4_rmdir(struct inode *dir, struct dentry *dentry)
 
 end_rmdir:
 	brelse(bh);
-	if (handle)
-		ext4_journal_stop(handle);
 	return retval;
 }
 
