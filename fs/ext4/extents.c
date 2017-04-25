@@ -415,7 +415,6 @@ static int __ext4_ext_check(const char *function, unsigned int line,
 
 corrupted:
 	printk(KERN_ERR "Print invalid extent entries\n");
-	ext4_ext_show_eh(inode, eh);
 
 	ext4_error_inode(inode, function, line, 0,
 			"bad header/extent: %s - magic %x, "
