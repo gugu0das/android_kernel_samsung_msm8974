@@ -303,7 +303,7 @@ handle_t *ext4_journal_start_sb(struct super_block *sb, int nblocks)
 	handle_t  *handle;
 
 	trace_ext4_journal_start(sb, nblocks, _RET_IP_);
-	if (sb->s_flags & MS_RDONLY && !journal_current_handle())
+	if (sb->s_flags & MS_RDONLY)
 		return ERR_PTR(-EROFS);
 
 	journal = EXT4_SB(sb)->s_journal;
