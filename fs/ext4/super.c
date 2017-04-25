@@ -4956,7 +4956,6 @@ static inline int ext3_feature_set_ok(struct super_block *sb)
 	return 1;
 }
 MODULE_ALIAS("ext3");
-#else
 #endif
 
 static struct file_system_type ext4_fs_type = {
