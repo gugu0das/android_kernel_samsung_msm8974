@@ -1890,8 +1890,6 @@ extern struct inode *ext4_new_inode(handle_t *, struct inode *, umode_t,
 				    const struct qstr *qstr, __u32 goal,
 				    uid_t *owner);
 
-#define ext4_new_inode(handle, dir, mode, qstr, goal, owner) \
-	__ext4_new_inode((handle), (dir), (mode), (qstr), (goal), (owner), 0)
 #define ext4_new_inode_start_handle(dir, mode, qstr, goal, owner, nblocks) \
 	__ext4_new_inode(NULL, (dir), (mode), (qstr), (goal), (owner), (nblocks))
 
