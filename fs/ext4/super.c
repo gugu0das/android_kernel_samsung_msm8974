@@ -100,8 +100,6 @@ static struct file_system_type ext2_fs_type = {
 #define IS_EXT2_SB(sb) (0)
 #endif
 
-
-#if !defined(CONFIG_EXT3_FS) && !defined(CONFIG_EXT3_FS_MODULE) && defined(CONFIG_EXT4_USE_FOR_EXT23)
 static struct file_system_type ext3_fs_type = {
 	.owner		= THIS_MODULE,
 	.name		= "ext3",
@@ -110,7 +108,6 @@ static struct file_system_type ext3_fs_type = {
 	.fs_flags	= FS_REQUIRES_DEV,
 };
 #define IS_EXT3_SB(sb) ((sb)->s_bdev->bd_holder == &ext3_fs_type)
-#endif
 
 void *ext4_kvmalloc(size_t size, gfp_t flags)
 {
@@ -4929,7 +4926,6 @@ static inline void unregister_as_ext2(void) { }
 static inline int ext2_feature_set_ok(struct super_block *sb) { return 0; }
 #endif
 
-#if !defined(CONFIG_EXT3_FS) && !defined(CONFIG_EXT3_FS_MODULE) && defined(CONFIG_EXT4_USE_FOR_EXT23)
 static inline void register_as_ext3(void)
 {
 	int err = register_filesystem(&ext3_fs_type);
@@ -4956,7 +4952,6 @@ static inline int ext3_feature_set_ok(struct super_block *sb)
 	return 1;
 }
 MODULE_ALIAS("ext3");
-#endif
 
 static struct file_system_type ext4_fs_type = {
 	.owner		= THIS_MODULE,
