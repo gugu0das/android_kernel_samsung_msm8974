@@ -3764,8 +3764,6 @@ no_journal:
 			 "available");
 	}
 
-	atomic64_set(&sbi->s_r_blocks_count, ext4_r_blocks_count(es));
-
 	err = ext4_setup_system_zone(sb);
 	if (err) {
 		ext4_msg(sb, KERN_ERR, "failed to initialize system "
