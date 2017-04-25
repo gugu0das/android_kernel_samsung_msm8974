@@ -2392,11 +2392,15 @@ static int ext4_symlink(struct inode *dir,
 			  EXT4_MAXQUOTAS_INIT_BLOCKS(dir->i_sb);
 	}
 retry:
-	inode = ext4_new_inode_start_handle(dir, S_IFLNK|S_IRWXUGO,
-					    &dentry->d_name, 0, NULL,
-					    credits);
-	handle = ext4_journal_current_handle();
+	handle = ext4_journal_start(dir, credits);
+	if (IS_ERR(handle))
+		return PTR_ERR(handle);
 
+	if (IS_DIRSYNC(dir))
+		ext4_handle_sync(handle);
+
+	inode = ext4_new_inode(handle, dir, S_IFLNK|S_IRWXUGO,
+			       &dentry->d_name, 0, NULL);
 	err = PTR_ERR(inode);
 	if (IS_ERR(inode))
 		goto out_stop;
@@ -2449,11 +2453,8 @@ retry:
 	}
 	EXT4_I(inode)->i_disksize = inode->i_size;
 	err = ext4_add_nondir(handle, dentry, inode);
-	if (!err && IS_DIRSYNC(dir))
-		ext4_handle_sync(handle);
 out_stop:
-	if (handle)
-		ext4_journal_stop(handle);
+	ext4_journal_stop(handle);
 	if (err == -ENOSPC && ext4_should_retry_alloc(dir->i_sb, &retries))
 		goto retry;
 	return err;
