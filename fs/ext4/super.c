@@ -2338,17 +2338,6 @@ struct ext4_attr {
 	int offset;
 };
 
-static int parse_strtoull(const char *buf,
-		unsigned long long max, unsigned long long *value)
-{
-	int ret;
-
-	ret = kstrtoull(skip_spaces(buf), 0, value);
-	if (!ret && *value > max)
-		ret = -EINVAL;
-	return ret;
-}
-
 static int parse_strtoul(const char *buf,
 		unsigned long max, unsigned long *value)
 {
