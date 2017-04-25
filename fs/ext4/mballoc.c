@@ -1265,8 +1265,6 @@ static void mb_free_blocks(struct inode *inode, struct ext4_buddy *e4b,
 	void *buddy2;
 	struct super_block *sb = e4b->bd_sb;
 
-	if (WARN_ON(count == 0))
-		return;
 	BUG_ON(first + count > (sb->s_blocksize << 3));
 	assert_spin_locked(ext4_group_lock_ptr(sb, e4b->bd_group));
 	mb_check_buddy(e4b);
@@ -1292,18 +1290,10 @@ static void mb_free_blocks(struct inode *inode, struct ext4_buddy *e4b,
 		order = 0;
 
 		if (!mb_test_bit(block, e4b->bd_bitmap)) {
-			/* for debugging, sangwoo2.lee */
-			struct ext4_group_desc *desc;
-			ext4_fsblk_t blocknr, bitmap_blk;
-
-			desc = ext4_get_group_desc(sb, e4b->bd_group, NULL);
-			bitmap_blk = ext4_block_bitmap(sb, desc);
+			ext4_fsblk_t blocknr;
 
 			blocknr = ext4_group_first_block_no(sb, e4b->bd_group);
 			blocknr += EXT4_C2B(EXT4_SB(sb), block);
-
-			print_block_data(sb, bitmap_blk, e4b->bd_bitmap, 0
-				, EXT4_BLOCK_SIZE(sb));
 			ext4_grp_locked_error(sb, e4b->bd_group,
 					      inode ? inode->i_ino : 0,
 					      blocknr,
