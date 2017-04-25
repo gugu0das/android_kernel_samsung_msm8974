@@ -4957,7 +4957,6 @@ static inline int ext3_feature_set_ok(struct super_block *sb)
 }
 MODULE_ALIAS("ext3");
 #else
-static inline void register_as_ext3(void) { }
 static inline void unregister_as_ext3(void) { }
 static inline int ext3_feature_set_ok(struct super_block *sb) { return 0; }
 #endif
