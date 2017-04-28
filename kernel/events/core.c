@@ -7263,20 +7263,11 @@ static void perf_event_exit_cpu_context(int cpu)
 
 	idx = srcu_read_lock(&pmus_srcu);
 	list_for_each_entry_rcu(pmu, &pmus, entry) {
-		/*
-		 * If keeping events across hotplugging is supported, do not
-		 * remove the event list, but keep it alive across CPU hotplug.
-		 * The context is exited via an fd close path when userspace
-		 * is done and the target CPU is online.
-		 */
-		if (!pmu->events_across_hotplug) {
-			ctx = &per_cpu_ptr(pmu->pmu_cpu_context, cpu)->ctx;
+		ctx = &per_cpu_ptr(pmu->pmu_cpu_context, cpu)->ctx;
 
-			mutex_lock(&ctx->mutex);
-			smp_call_function_single(cpu, __perf_event_exit_context,
-						 ctx, 1);
-			mutex_unlock(&ctx->mutex);
-		}
+		mutex_lock(&ctx->mutex);
+		smp_call_function_single(cpu, __perf_event_exit_context, ctx, 1);
+		mutex_unlock(&ctx->mutex);
 	}
 	srcu_read_unlock(&pmus_srcu, idx);
 }
