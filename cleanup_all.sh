@@ -3,7 +3,7 @@
 # Clean Build Files
 make mrproper
 rm -r -f output/
-rm -r -f armeb-linux-gnueabihf-linaro_6.2.1-2016.11/
+rm -r -f armeb-linux-gnueabihf-linaro_6.3.1-2017.02/
 rm -r -f arm-eabi-ubertc_7.0-2016.04/
 rm -f gugu0das/Touchwiz/ramdisk.cpio.gz
 rm -f gugu0das/Touchwiz/boot_ks01ltekor.img
