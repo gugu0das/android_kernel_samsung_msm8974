@@ -248,7 +248,7 @@ int tima_is_pg_protected(unsigned long va)
 	unsigned long flags;
 
 	/* Translate the page use writable priv.
-	Failing means a read-only page 
+	Failing means a read-only page
 	(tranlation was confirmed by previous step)*/
 	raw_spin_lock_irqsave(&par_lock, flags);
 	__asm__ __volatile__ (
@@ -274,12 +274,12 @@ EXPORT_SYMBOL(tima_is_pg_protected);
 #define INS_STR_R3	0xe5a03800
 extern void* cpu_v7_set_pte_ext_proc_end;
 static unsigned int rkp_fixup(unsigned long addr, struct pt_regs *regs) {
-	
+
 	unsigned long inst = *((unsigned long*) regs->ARM_pc);
 	unsigned long reg_val = 0;
 	unsigned long emulate = 0;
-	
-	if (regs->ARM_pc <  (long) cpu_v7_set_pte_ext 
+
+	if (regs->ARM_pc <  (long) cpu_v7_set_pte_ext
 		|| regs->ARM_pc > (long) &cpu_v7_set_pte_ext_proc_end) {
 		printk(KERN_ERR
 			"RKP -> Inst %lx out of cpu_v7_set_pte_ext range from %lx to %lx\n",
@@ -298,7 +298,7 @@ static unsigned int rkp_fixup(unsigned long addr, struct pt_regs *regs) {
 		emulate = 1;
 	}
 	if (emulate) {
-		printk(KERN_ERR"Emulating RKP instruction %lx at %p\n", 
+		printk(KERN_ERR"Emulating RKP instruction %lx at %p\n",
 		inst, (unsigned long*) regs->ARM_pc);
 #ifndef	CONFIG_TIMA_RKP_COHERENT_TT
 		asm volatile("mcr     p15, 0, %0, c7, c14, 1\n"
@@ -308,7 +308,7 @@ static unsigned int rkp_fixup(unsigned long addr, struct pt_regs *regs) {
 #endif
 		tima_send_cmd2(__pa(addr), reg_val, 0x08);
 #ifndef	CONFIG_TIMA_RKP_COHERENT_TT
-		asm volatile("mcr     p15, 0, %0, c7, c6, 1\n" 
+		asm volatile("mcr     p15, 0, %0, c7, c6, 1\n"
 		"dsb\n"
                 "isb\n"
 		: : "r" (addr));
@@ -316,9 +316,9 @@ static unsigned int rkp_fixup(unsigned long addr, struct pt_regs *regs) {
 		regs->ARM_pc += 4;
 		return true;
 	}
-	printk(KERN_ERR"CANNOT Emulate RKP instruction %lx at %p\n", 
+	printk(KERN_ERR"CANNOT Emulate RKP instruction %lx at %p\n",
 		inst, (unsigned long*) regs->ARM_pc);
-	return false;		
+	return false;
 }
 #endif
 #endif
@@ -357,7 +357,7 @@ __do_kernel_fault(struct mm_struct *mm, unsigned long addr, unsigned int fsr,
 			return;
 		}
 	}
-#endif	
+#endif
 #endif
 
 	/*
@@ -395,8 +395,9 @@ __do_user_fault(struct task_struct *tsk, unsigned long addr,
 	trace_user_fault(tsk, addr, fsr);
 
 #ifdef CONFIG_DEBUG_USER
-	if (((user_debug & UDBG_SEGV) && (sig == SIGSEGV)) ||
-	    ((user_debug & UDBG_BUS)  && (sig == SIGBUS))) {
+	if ((((user_debug & UDBG_SEGV) && (sig == SIGSEGV)) ||
+	     ((user_debug & UDBG_BUS)  && (sig == SIGBUS))) &&
+	     unhandled_signal(tsk, sig)) {
 		printk(KERN_DEBUG "%s: unhandled page fault (%d) at 0x%08lx, code 0x%03x\n",
 		       tsk->comm, sig, addr, fsr);
 		show_pte(tsk->mm, addr);
