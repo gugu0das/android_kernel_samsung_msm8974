@@ -188,7 +188,7 @@ void sdcardfs_destroy_inode_cache(void)
 		kmem_cache_destroy(sdcardfs_inode_cachep);
 }
 
-long sdcardfs_propagate_unlink(struct inode *parent, char* pathname) {
+static long sdcardfs_propagate_lookup(struct super_block *sb, char* pathname) {
 	long ret = 0;
 	char *propagate_path = NULL;
 	struct sdcardfs_sb_info *sbi;
