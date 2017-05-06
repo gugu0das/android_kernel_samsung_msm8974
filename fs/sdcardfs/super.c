@@ -282,3 +282,16 @@ const struct super_operations sdcardfs_sops = {
 	.drop_inode	= generic_delete_inode,
 	.unlink_callback = sdcardfs_propagate_unlink,
 };
+
+const struct super_operations sdcardfs_multimount_sops = {
+	.put_super	= sdcardfs_put_super,
+	.statfs		= sdcardfs_statfs,
+	.remount_fs	= sdcardfs_remount_fs,
+	.evict_inode	= sdcardfs_evict_inode,
+	.umount_begin	= sdcardfs_umount_begin,
+	.show_options	= sdcardfs_show_options,
+	.alloc_inode	= sdcardfs_alloc_inode,
+	.destroy_inode	= sdcardfs_destroy_inode,
+	.drop_inode	= generic_delete_inode,
+	.unlink_callback = sdcardfs_propagate_lookup,
+};
