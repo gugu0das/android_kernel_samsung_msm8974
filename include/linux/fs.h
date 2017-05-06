@@ -1746,7 +1746,7 @@ struct super_operations {
 	int (*bdev_try_to_free_page)(struct super_block*, struct page*, gfp_t);
 	int (*nr_cached_objects)(struct super_block *);
 	void (*free_cached_objects)(struct super_block *, int);
-	long (*unlink_callback)(struct inode *, char *);
+	long (*unlink_callback)(struct super_block *, char *);
 };
 
 /*
