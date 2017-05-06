@@ -1828,7 +1828,6 @@ sha256_block_data_order:
 #if __ARM_ARCH__>=7
 	ite	eq			@ Thumb2 thing, sanity check in ARM
 #endif
-	ldreq	r3,[sp,#16*4]		@ pull ctx
 	bne	.Lrounds_16_xx
 
 	add	r4,r4,r12		@ h+=Maj(a,b,c) from the past
@@ -2320,13 +2319,11 @@ sha256_block_data_order_neon:
 	sub		r14,r14,#256	@ rewind r14
 	teq		r1,r0
 	it		eq
-	subeq		r1,r1,#64		@ avoid SEGV
 	vld1.8		{q0},[r1]!		@ load next input block
 	vld1.8		{q1},[r1]!
 	vld1.8		{q2},[r1]!
 	vld1.8		{q3},[r1]!
 	it		ne
-	strne		r1,[sp,#68]
 	mov		r1,sp
 	add	r11,r11,r2
 	eor	r2,r9,r10
@@ -2640,12 +2637,7 @@ sha256_block_data_order_neon:
 	stmia	r2,{r8-r11}
 
 	ittte	ne
-	movne	r1,sp
-	ldrne	r2,[sp,#0]
-	eorne	r12,r12,r12
-	ldreq	sp,[sp,#76]			@ restore original sp
 	itt	ne
-	eorne	r3,r5,r6
 	bne	.L_00_48
 
 	ldmia	sp!,{r4-r12,pc}
