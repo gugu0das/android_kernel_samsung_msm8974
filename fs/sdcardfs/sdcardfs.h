@@ -165,7 +165,6 @@ extern struct dentry *sdcardfs_lookup(struct inode *dir, struct dentry *dentry,
 				    struct nameidata *nd);
 extern int sdcardfs_interpose(struct dentry *dentry, struct super_block *sb,
 			    struct path *lower_path);
-extern long sdcardfs_propagate_unlink(struct inode *parent, char* pathname);
 
 #ifdef SDCARD_FS_XATTR
 extern int sdcardfs_setxattr(struct dentry *dentry, const char *name, const void *value, size_t size, int flags);
