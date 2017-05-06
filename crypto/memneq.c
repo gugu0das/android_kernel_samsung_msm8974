@@ -60,6 +60,7 @@
  */
 
 #include <crypto/algapi.h>
+#include <linux/module.h> 
 
 #ifndef __HAVE_ARCH_CRYPTO_MEMNEQ
 
