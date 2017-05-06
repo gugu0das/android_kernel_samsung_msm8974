@@ -349,9 +349,6 @@ on property:persist.debug.trace=1
 on property:ro.board.platform=msm7630_fusion
     start usbhub_init
 
-# SSWAP
-    write /proc/sys/vm/swappiness 130
-
 on property:init.svc.wpa_supplicant=stopped
     stop dhcpcd
 
@@ -808,10 +805,3 @@ service RIDL /system/vendor/bin/RIDLClient.exe
     group root inet log sdcard_r sdcard_rw qcom_diag radio net_raw
     # removed for security team - misc bluetooth gps wifi diag media_rw
     # limited to 12 groups.  Unused: audio usb net_bt_admin net_bt_stac net_admin
-
-# SSWAP
-service swapon /sbin/sswap -s
-    class core
-    user root
-    group root
-    oneshot
