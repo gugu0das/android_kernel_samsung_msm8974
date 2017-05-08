@@ -189,7 +189,7 @@ static struct msm_gpiomux_config msm8974_cover_id_config[] __initdata = {
 };
 #endif
 
-#if defined(CONFIG_MACH_H3G_CHN_CMCC) || defined(CONFIG_MACH_H3GDUOS)
+#if defined(CONFIG_MACH_H3G_CHN_OPEN) || defined(CONFIG_MACH_H3G_CHN_CMCC) || defined(CONFIG_MACH_H3GDUOS)
 static struct gpiomux_setting gpio_synaptics_id_config = {
 	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_2MA,
@@ -719,7 +719,7 @@ static struct msm_gpiomux_config hw_rev_configs[] __initdata = {
 };
 
 static struct msm_gpiomux_config gpio_nc_configs[] __initdata = {
-#if !defined(CONFIG_MACH_H3G_CHN_CMCC) && !defined(CONFIG_MACH_H3GDUOS)
+#if !defined(CONFIG_MACH_H3G_CHN_OPEN) && !defined(CONFIG_MACH_H3G_CHN_CMCC) && !defined(CONFIG_MACH_H3GDUOS)
 	GPIOMUX_SET_NC(91),		/* TSP_ID */
 #endif
 	GPIOMUX_SET_NC(101),		/* 2Touch_ID */
@@ -2719,7 +2719,7 @@ void __init msm_8974_init_gpiomux(void)
 	msm_gpiomux_install(msm8974_cover_id_config, ARRAY_SIZE(msm8974_cover_id_config));
 #endif
 
-#if defined(CONFIG_MACH_H3G_CHN_CMCC) || defined(CONFIG_MACH_H3GDUOS)
+#if defined(CONFIG_MACH_H3G_CHN_OPEN) || defined(CONFIG_MACH_H3G_CHN_CMCC) || defined(CONFIG_MACH_H3GDUOS)
 	msm_gpiomux_install(synaptics_tsp_id_configs, ARRAY_SIZE(synaptics_tsp_id_configs));
 #endif
 

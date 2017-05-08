@@ -614,7 +614,7 @@ static int __init msm_hw_rev_setup(char *p)
 	system_rev = memparse(p, NULL);
 			return 0;
 }
-early_param("androidboot.revision", msm_hw_rev_setup);
+early_param("samsung.board_rev", msm_hw_rev_setup);
 
 static void __init
 setup_ramdisk(int doload, int prompt, int image_start, unsigned int rd_sz)
@@ -1099,9 +1099,6 @@ static const char *hwcap_str[] = {
 	"vfpv4",
 	"idiva",
 	"idivt",
-	"vfpd32",
-	"lpae",
-	"evtstrm",
 	NULL
 };
 
