@@ -847,7 +847,7 @@ out:
  * Original function is is asm-generic.
  */
 static inline void tima_l2group_ptep_set_wrprotect(struct mm_struct *mm,
-			unsigned long address, pte_t *ptep, 
+			unsigned long address, pte_t *ptep,
 			tima_l2group_entry_t *tima_l2group_buffer1,
 			tima_l2group_entry_t *tima_l2group_buffer2,
 			unsigned long *tima_l2group_buffer_index)
@@ -855,12 +855,12 @@ static inline void tima_l2group_ptep_set_wrprotect(struct mm_struct *mm,
         pte_t old_pte = *ptep;
 	if (*tima_l2group_buffer_index < RKP_MAX_PGT2_ENTRIES) {
 		timal2group_set_pte_at(ptep, pte_wrprotect(old_pte),
-					(((unsigned long) tima_l2group_buffer1) + 
+					(((unsigned long) tima_l2group_buffer1) +
 					 (sizeof(tima_l2group_entry_t)*(*tima_l2group_buffer_index))),
 					address, tima_l2group_buffer_index);
 	} else {
 		timal2group_set_pte_at(ptep, pte_wrprotect(old_pte),
-					(((unsigned long) tima_l2group_buffer2) + 
+					(((unsigned long) tima_l2group_buffer2) +
 					 (sizeof(tima_l2group_entry_t)*(*tima_l2group_buffer_index - RKP_MAX_PGT2_ENTRIES))),
 					address, tima_l2group_buffer_index);
 	}
@@ -879,7 +879,7 @@ static inline void tima_l2group_ptep_set_wrprotect(struct mm_struct *mm,
 static inline unsigned long
 tima_l2group_copy_one_pte(struct mm_struct *dst_mm, struct mm_struct *src_mm,
 		pte_t *dst_pte, pte_t *src_pte, struct vm_area_struct *vma,
-		unsigned long addr, int *rss, 
+		unsigned long addr, int *rss,
 		tima_l2group_entry_t *tima_l2group_buffer1,
 		tima_l2group_entry_t *tima_l2group_buffer2,
 		unsigned long *tima_l2group_buffer_index,
@@ -889,7 +889,7 @@ static inline unsigned long
 copy_one_pte(struct mm_struct *dst_mm, struct mm_struct *src_mm,
 		pte_t *dst_pte, pte_t *src_pte, struct vm_area_struct *vma,
 		unsigned long addr, int *rss)
-#endif /* CONFIG_TIMA_RKP_L2_GROUP */		
+#endif /* CONFIG_TIMA_RKP_L2_GROUP */
 {
 	unsigned long vm_flags = vma->vm_flags;
 	pte_t pte = *src_pte;
@@ -1040,19 +1040,19 @@ again:
 #ifdef CONFIG_TIMA_RKP_L2_GROUP
 		/* function tima_l2group_copy_one_pte() increments
 		 * tima_l2group_buffer_index. Do not increment
-		 * it outside else we end up with buffer sizes 
+		 * it outside else we end up with buffer sizes
 		 * which are invalid.
 		 */
 		entry.val = tima_l2group_copy_one_pte(dst_mm, src_mm, dst_pte, src_pte,
-							vma, addr, rss, 
+							vma, addr, rss,
 							tima_l2group_buffer1,
 							tima_l2group_buffer2,
 							&tima_l2group_buffer_index,
 							tima_l2group_flag);
-#else		
+#else
 		entry.val = copy_one_pte(dst_mm, src_mm, dst_pte, src_pte,
 							vma, addr, rss);
-#endif /* CONFIG_TIMA_RKP_L2_GROUP */						
+#endif /* CONFIG_TIMA_RKP_L2_GROUP */
 		if (entry.val)
 			break;
 		progress += 8;
@@ -1450,24 +1450,6 @@ static void unmap_single_vma(struct mmu_gather *tlb,
 		} else
 			unmap_page_range(tlb, vma, start, end, details);
 	}
-}
-
-static inline bool can_follow_write_pte(pte_t pte, struct page *page,
-					unsigned int flags)
-{
-	if (pte_write(pte))
-		return true;
-
-	/*
-	 * Make sure that we are really following CoWed page. We do not really
-	 * have to care about exclusiveness of the page because we only want
-	 * to ensure that once COWed page hasn't disappeared in the meantime
-	 * or it hasn't been merged to a KSM page.
-	 */
-	if ((flags & FOLL_FORCE) && (flags & FOLL_COW))
-		return page && PageAnon(page) && !PageKsm(page);
-
-	return false;
 }
 
 /**
@@ -1918,7 +1900,7 @@ int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
 
 	VM_BUG_ON(!!pages != !!(gup_flags & FOLL_GET));
 
-	/* 
+	/*
 	 * Require read or write permissions.
 	 * If FOLL_FORCE is set, we only require the "MAY" flags.
 	 */
