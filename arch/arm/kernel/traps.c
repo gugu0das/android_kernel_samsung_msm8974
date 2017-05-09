@@ -440,7 +440,6 @@ asmlinkage void __exception do_undefinstr(struct pt_regs *regs)
 die_sig:
 	trace_undef_instr(regs, (void *)pc);
 
-die_sig:
 #ifdef CONFIG_DEBUG_USER
 	if (user_debug & UDBG_UNDEFINED) {
 		printk(KERN_INFO "%s (%d): undefined instruction: pc=%p\n",
