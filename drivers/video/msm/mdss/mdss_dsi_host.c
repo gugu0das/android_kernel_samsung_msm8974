@@ -1337,12 +1337,14 @@ static int mdss_dsi_cmd_dma_tx(struct mdss_dsi_ctrl_pdata *ctrl,
 	}
 #endif
 
+	ctrl->mdss_util->iommu_lock();
 	if (is_mdss_iommu_attached()) {
 		ret = msm_iommu_map_contig_buffer(tp->dmap,
 					mdss_get_iommu_domain(domain), 0,
 					size, SZ_4K, 0, &(addr));
 		if (IS_ERR_VALUE(ret)) {
 			pr_err("unable to map dma memory to iommu(%d)\n", ret);
+			ctrl->mdss_util->iommu_unlock();
 			return -ENOMEM;
 		}
 	} else {
@@ -1396,6 +1398,7 @@ static int mdss_dsi_cmd_dma_tx(struct mdss_dsi_ctrl_pdata *ctrl,
 		msm_iommu_unmap_contig_buffer(addr,
 			mdss_get_iommu_domain(domain), 0, size);
 
+	ctrl->mdss_util->iommu_unlock();
 	return ret;
 }
 
@@ -1630,6 +1633,7 @@ int mdss_dsi_cmdlist_commit(struct mdss_dsi_ctrl_pdata *ctrl, int from_mdp)
 	struct dcs_cmd_req *req;
 	int ret = -EINVAL;
 	int rc = 0;
+	bool use_iommu = false;
 
 #ifndef CONFIG_LCD_FORCE_VIDEO_MODE
 	if (ctrl->panel_mode == DSI_CMD_MODE)
@@ -1674,6 +1678,8 @@ int mdss_dsi_cmdlist_commit(struct mdss_dsi_ctrl_pdata *ctrl, int from_mdp)
 		mutex_unlock(&ctrl->cmd_mutex);
 		return rc;
 	}
+	use_iommu = true;
+
 	if (req->flags & CMD_REQ_RX)
 			ret = mdss_dsi_cmdlist_rx(ctrl, req);
 #if !defined(CONFIG_MACH_S3VE3G_EUR)
@@ -1682,7 +1688,9 @@ int mdss_dsi_cmdlist_commit(struct mdss_dsi_ctrl_pdata *ctrl, int from_mdp)
 #endif
 	else
 		ret = mdss_dsi_cmdlist_tx(ctrl, req);
-	mdss_iommu_ctrl(0);
+	//mdss_iommu_ctrl(0);
+	if (use_iommu)
+		mdss_iommu_ctrl(0);
 	mdss_dsi_clk_ctrl(ctrl, DSI_ALL_CLKS, 0);
 	mdss_bus_scale_set_quota(MDSS_HW_DSI0, 0, 0);
 	mdss_bus_bandwidth_ctrl(0);

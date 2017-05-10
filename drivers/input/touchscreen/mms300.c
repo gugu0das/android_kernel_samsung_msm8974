@@ -1813,7 +1813,7 @@ static int mms_flash_fw(struct mms_ts_info *info, const u8 *fw_data, size_t fw_s
 		dev_info(&client->dev, "firmware data copy\n");
 	}
 
-	nOffset = nStartAddr + nWriteLength - 128;	// nOffset ?� 반드??int ?�이?�야 ??
+	nOffset = nStartAddr + nWriteLength - 128;	// nOffset ?� 반드??int ?�이?�야 ??
 	nTransferLength = 128;
 
 	while( nOffset >= 0 )
@@ -2245,7 +2245,7 @@ static void get_module_vendor(void *device_data)
 	int val,val2;
 
 	set_default_result(info);
-	if (!(gpio_get_value(info->pdata->vdd_en) && 
+	if (!(gpio_get_value(info->pdata->vdd_en) &&
 				gpio_get_value(info->pdata->vdd_en2))) {
 		dev_err(&info->client->dev, "%s: [ERROR] Touch is stopped\n",
 				__func__);
@@ -2712,6 +2712,11 @@ static ssize_t store_cmd(struct device *dev, struct device_attribute
 	int param_cnt = 0;
 	int ret;
 
+	if (strlen(buf) >= TSP_CMD_STR_LEN) {
+		dev_err(&info->client->dev, "%s: cmd length is over(%s,%d)!!\n", __func__, buf, (int)strlen(buf));
+		return -EINVAL;
+	}
+
 	if (info->cmd_is_running == true) {
 		dev_err(&info->client->dev, "tsp_cmd: other cmd is running.\n");
 		goto err_out;
@@ -2773,7 +2778,7 @@ static ssize_t store_cmd(struct device *dev, struct device_attribute
 				param_cnt++;
 			}
 			cur++;
-		} while (cur - buf <= len);
+		} while ((cur - buf <= len) && (param_cnt < TSP_CMD_PARAM_NUM));
 	}
 
 	dev_info(&client->dev, "cmd = %s\n", tsp_cmd_ptr->cmd_name);
@@ -3330,17 +3335,17 @@ int melfas_power(struct mms_ts_info *info, int on){
 				rc);
 				return 0;
 			}
-			
+
 		}
 	}
-	
+
 	ret = gpio_direction_output(info->pdata->vdd_en, on);
 		if (ret) {
 			pr_err("[TSP]%s: unable to set_direction for mms_vdd_en [%d]\n",
 					__func__, info->pdata->vdd_en);
 		}
 		return 0;
-	
+
 	msleep(20);
 	tsp_power_enabled = on;
 	return 0;
