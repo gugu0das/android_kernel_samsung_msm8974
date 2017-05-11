@@ -65,21 +65,9 @@
 #include <asm/div64.h>
 #include "internal.h"
 
-#ifdef CONFIG_SDP_CACHE_CLEANUP
-#include <linux/highmem.h>
-#define PER_USER_RANGE 100000
-#define SENSITIVITY_UNKNOWN 0
-#define SENSITIVE 1
-#define NOT_SENSITIVE 2
-#endif
-
 #ifdef CONFIG_USE_PERCPU_NUMA_NODE_ID
 DEFINE_PER_CPU(int, numa_node);
 EXPORT_PER_CPU_SYMBOL(numa_node);
-#endif
-
-#ifdef CONFIG_SDP_CACHE_CLEANUP
-extern int dek_is_sdp_uid(uid_t uid);
 #endif
 
 #ifdef CONFIG_HAVE_MEMORYLESS_NODES
@@ -731,17 +719,6 @@ static bool free_pages_prepare(struct page *page, unsigned int order)
 {
 	int i;
 	int bad = 0;
-#ifdef CONFIG_SDP_CACHE_CLEANUP
-	if (PageSensitive(page)) {
-		void *kaddr;
-		ClearPageSensitive(page);
-		kaddr = kmap_atomic(page);
-		if (kaddr)
-			clear_page(kaddr);
-		kunmap_atomic(kaddr);
-		flush_dcache_page(page);
-	}
-#endif
 
 	trace_mm_page_free(page, order);
 	kmemcheck_free_shadow(page, order);
@@ -6294,10 +6271,7 @@ static struct trace_print_flags pageflag_names[] = {
 	{1UL << PG_hwpoison,		"hwpoison"	},
 #endif
 	{1UL << PG_readahead,           "PG_readahead"  },
-#ifdef CONFIG_SDP
-	{1UL << PG_sensitive,	"sensitive"	},
-#endif
-	{1UL << PG_readahead,           "PG_readahead"  },
+
 #ifdef CONFIG_SCFS_LOWER_PAGECACHE_INVALIDATION
 	{1UL << PG_scfslower, "scfslower"},
 	{1UL << PG_nocache,"nocache"},
