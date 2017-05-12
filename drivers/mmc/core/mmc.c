@@ -1380,7 +1380,10 @@ static int mmc_reboot_notify(struct notifier_block *notify_block,
 	struct mmc_card *card = container_of(
 			notify_block, struct mmc_card, reboot_notify);
 
-	card->pon_type = (event != SYS_RESTART) ? MMC_LONG_PON : MMC_SHRT_PON;
+	if (event != SYS_RESTART)
+		card->issue_long_pon = true;
+	else
+		card->issue_long_pon = false;
 
 	return NOTIFY_OK;
 }
