@@ -420,7 +420,7 @@ struct mmc_card {
 	struct device_attribute rpm_attrib;
 	unsigned int		idle_timeout;
 	struct notifier_block        reboot_notify;
-	enum mmc_pon_type pon_type;
+	bool issue_long_pon;
 	u8 *cached_ext_csd;
 };
 
