@@ -2903,8 +2903,7 @@ out:
 	return;
 }
 
-static bool mmc_is_vaild_state_for_clk_scaling(struct mmc_host *host,
-				enum mmc_load state)
+static bool mmc_is_vaild_state_for_clk_scaling(struct mmc_host *host)
 {
 	struct mmc_card *card = host->card;
 	u32 status;
@@ -2917,8 +2916,7 @@ static bool mmc_is_vaild_state_for_clk_scaling(struct mmc_host *host,
 	 */
 	if (!card || (mmc_card_mmc(card) &&
 			card->part_curr == EXT_CSD_PART_CONFIG_ACC_RPMB)
-			|| (state != MMC_LOAD_LOW &&
-				host->clk_scaling.invalid_state))
+			|| host->clk_scaling.invalid_state)
 		goto out;
 
 	if (mmc_send_status(card, &status)) {
