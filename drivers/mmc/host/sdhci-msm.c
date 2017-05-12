@@ -832,35 +832,6 @@ out:
 	return ret;
 }
 
-static void sdhci_msm_set_mmc_drv_type(struct sdhci_host *host, u32 opcode,
-		u8 drv_type)
-{
-	struct mmc_command cmd = {0};
-	struct mmc_request mrq = {NULL};
-	struct mmc_host *mmc = host->mmc;
-	u8 val = ((drv_type << 4) | 2);
-
-	cmd.opcode = MMC_SWITCH;
-	cmd.arg = (MMC_SWITCH_MODE_WRITE_BYTE << 24) |
-		(EXT_CSD_HS_TIMING << 16) |
-		(val << 8) |
-		EXT_CSD_CMD_SET_NORMAL;
-	cmd.flags = MMC_CMD_AC | MMC_RSP_R1B;
-	/* 1 sec */
-	cmd.cmd_timeout_ms = 1000 * 1000;
-
-	memset(cmd.resp, 0, sizeof(cmd.resp));
-	cmd.retries = 3;
-
-	mrq.cmd = &cmd;
-	cmd.data = NULL;
-
-	mmc_wait_for_req(mmc, &mrq);
-	pr_debug("%s: %s: set card drive type to %d\n",
-			mmc_hostname(mmc), __func__,
-			drv_type);
-}
-
 int sdhci_msm_execute_tuning(struct sdhci_host *host, u32 opcode)
 {
 	unsigned long flags;
