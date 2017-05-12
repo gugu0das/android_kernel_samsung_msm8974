@@ -2947,7 +2947,7 @@ static int mmc_clk_update_freq(struct mmc_host *host,
 	}
 
 	if (freq != host->clk_scaling.curr_freq) {
-		if (!mmc_is_vaild_state_for_clk_scaling(host, state)) {
+		if (!mmc_is_vaild_state_for_clk_scaling(host)) {
 			err = -EAGAIN;
 			goto error;
 		}
