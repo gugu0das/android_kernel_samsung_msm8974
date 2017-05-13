@@ -66,6 +66,30 @@ static const struct file_operations stlog_operations = {
 	.llseek		= stlog_llseek,
 };
 
+static ssize_t stlog_ver_read(struct file *file, char __user *buf,
+			 size_t count, loff_t *ppos)
+{
+	ssize_t ret = 0;
+	loff_t off = *ppos;
+	ssize_t len = strlen(DEF_STLOG_VER_STR);
+
+	if (off >= len)
+		return 0;
+
+	len -= off;
+	if (count < len)
+		return -ENOMEM;
+
+	ret = copy_to_user(buf, &DEF_STLOG_VER_STR[off], len);
+	if (ret < 0)
+		return ret;
+
+	len -= ret;
+	*ppos += len;
+
+	return len;
+}
+
 static const struct file_operations stlog_ver_operations = {
 	.read		= stlog_ver_read,
 };
