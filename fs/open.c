@@ -734,6 +734,7 @@ cleanup_all:
 			mnt_drop_write(mnt);
 		}
 	}
+	file_sb_list_del(f);
 	f->f_path.dentry = NULL;
 	f->f_path.mnt = NULL;
 cleanup_file:
