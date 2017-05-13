@@ -1684,6 +1684,7 @@ long do_io_submit(aio_context_t ctx_id, long nr,
 	struct kioctx *ctx;
 	long ret = 0;
 	int i = 0;
+	struct blk_plug plug;
 	struct kiocb_batch batch;
 
 	if (unlikely(nr < 0))
