@@ -50,3 +50,6 @@ on post-fs-data
 service privatemode /system/bin/sdcard /data/privatemode /mnt/shell/privatemode 1000 1000
     class late_start
     oneshot
+
+# SSWAP
+    write /proc/sys/vm/swappiness 130
