@@ -625,6 +625,11 @@ const struct file_operations proc_pid_smaps_operations = {
 	.release	= seq_release_private,
 };
 
+static int proc_pid_smaps_simple_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, proc_pid_smaps_simple_show, proc_pid(inode));
+}
+
 const struct file_operations proc_pid_smaps_simple_operations = {
 	.open		= proc_pid_smaps_simple_open,
 	.read		= seq_read,
