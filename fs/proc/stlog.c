@@ -27,6 +27,8 @@ extern wait_queue_head_t ringbuf_wait;
  */
 static int stlog_open(struct inode * inode, struct file * file)
 {
+	//Open as non-blocking mode for printing once.
+	file->f_flags |= O_NONBLOCK;
 	return do_stlog(STLOG_ACTION_OPEN, NULL, 0, STLOG_FROM_PROC);
 }
 
