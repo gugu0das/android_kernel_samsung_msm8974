@@ -155,6 +155,8 @@ static int ecryptfs_show_options(struct seq_file *m, struct dentry *root)
 	struct super_block *sb = root->d_sb;
 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat =
 		&ecryptfs_superblock_to_private(sb)->mount_crypt_stat;
+	struct ecryptfs_propagate_stat *propagate_stat =
+		&ecryptfs_superblock_to_private(sb)->propagate_stat;
 	struct ecryptfs_global_auth_tok *walker;
 
 	mutex_lock(&mount_crypt_stat->global_auth_tok_list_mutex);
@@ -208,6 +210,15 @@ static int ecryptfs_show_options(struct seq_file *m, struct dentry *root)
 		seq_printf(m, ",ecryptfs_unlink_sigs");
 	if (mount_crypt_stat->flags & ECRYPTFS_GLOBAL_MOUNT_AUTH_TOK_ONLY)
 		seq_printf(m, ",ecryptfs_mount_auth_tok_only");
+
+	seq_printf(m, ",base=%s", propagate_stat->base_path);
+	if (propagate_stat->propagate_type == TYPE_E_DEFAULT)
+		seq_printf(m, ",type=default");
+	else if (propagate_stat->propagate_type == TYPE_E_READ)
+		seq_printf(m, ",type=read");
+	else if (propagate_stat->propagate_type == TYPE_E_WRITE)
+		seq_printf(m, ",type=write");
+	seq_printf(m, ",label=%s", propagate_stat->label);	
 
 	return 0;
 }
