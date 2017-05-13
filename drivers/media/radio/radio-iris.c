@@ -1507,8 +1507,8 @@ static int hci_fm_set_cal_req_proc(struct radio_hci_dev *hdev,
 
 	opcode = hci_opcode_pack(HCI_OGF_FM_COMMON_CTRL_CMD_REQ,
 		HCI_OCF_FM_SET_CALIBRATION);
-	return radio_hci_send_cmd(hdev, opcode,
-		sizeof(struct hci_fm_set_cal_req_proc), cal_req);
+	return radio_hci_send_cmd(hdev, opcode, sizeof(*cal_req),
+		cal_req);
 }
 
 static int hci_fm_do_cal_req(struct radio_hci_dev *hdev,
@@ -2875,7 +2875,7 @@ static int iris_do_calibration(struct iris_device *radio)
 			radio->fm_hdev);
 	if (retval < 0)
 		FMDERR("Disable Failed after calibration %d", retval);
-
+	radio->mode = FM_OFF;
 	return retval;
 }
 static int iris_vidioc_g_ctrl(struct file *file, void *priv,
@@ -3178,9 +3178,9 @@ static int iris_vidioc_g_ctrl(struct file *file, void *priv,
 	default:
 		retval = -EINVAL;
 	}
-	if (ctrl != NULL && retval < 0)
-		FMDERR("get control failed: %d, ret: %d\n", ctrl->id, retval);
-
+	if (retval < 0)
+		FMDERR("get control failed with %d, id: %d\n",
+			retval, ctrl->id);
 	return retval;
 }
 
@@ -3217,7 +3217,7 @@ static int iris_vidioc_s_ext_ctrls(struct file *file, void *priv,
 			struct v4l2_ext_controls *ctrl)
 {
 	int retval = 0;
-	size_t bytes_to_copy;
+	int bytes_to_copy;
 	struct hci_fm_tx_ps tx_ps;
 	struct hci_fm_tx_rt tx_rt;
 	struct hci_fm_def_data_wr_req default_data;
@@ -3226,20 +3226,14 @@ static int iris_vidioc_s_ext_ctrls(struct file *file, void *priv,
 	struct iris_device *radio = video_get_drvdata(video_devdata(file));
 	char *data = NULL;
 
-	if ((ctrl == NULL) || (ctrl->controls == NULL)
-		|| (ctrl->count == 0)) {
-		retval = -EINVAL;
-		return retval;
-	}
-
 	switch ((ctrl->controls[0]).id) {
 	case V4L2_CID_RDS_TX_PS_NAME:
 		FMDBG("In V4L2_CID_RDS_TX_PS_NAME\n");
 		/*Pass a sample PS string */
 
 		memset(tx_ps.ps_data, 0, MAX_PS_LENGTH);
-		bytes_to_copy = min(ctrl->controls[0].size,
-			(size_t)MAX_PS_LENGTH);
+		bytes_to_copy = min((int)(ctrl->controls[0]).size,
+			MAX_PS_LENGTH);
 		data = (ctrl->controls[0]).string;
 
 		if (copy_from_user(tx_ps.ps_data,
@@ -3256,7 +3250,7 @@ static int iris_vidioc_s_ext_ctrls(struct file *file, void *priv,
 		break;
 	case V4L2_CID_RDS_TX_RADIO_TEXT:
 		bytes_to_copy =
-		    min((ctrl->controls[0]).size, (size_t)MAX_RT_LENGTH);
+		    min((int)(ctrl->controls[0]).size, MAX_RT_LENGTH);
 		data = (ctrl->controls[0]).string;
 
 		memset(tx_rt.rt_data, 0, MAX_RT_LENGTH);
@@ -3776,26 +3770,13 @@ static int iris_vidioc_s_ctrl(struct file *file, void *priv,
 		radio->riva_data_req.cmd_params.start_addr = ctrl->value;
 		break;
 	case V4L2_CID_PRIVATE_IRIS_RIVA_ACCS_LEN:
-		if ((ctrl->value > 0) &&
-			(ctrl->value <= MAX_RIVA_PEEK_RSP_SIZE)) {
 			radio->riva_data_req.cmd_params.length = ctrl->value;
-		} else {
-			FMDERR("Length %d is more than the buffer size %d\n",
-			ctrl->value, MAX_RIVA_PEEK_RSP_SIZE);
-			retval = -EINVAL;
-		}
 		break;
 	case V4L2_CID_PRIVATE_IRIS_RIVA_POKE:
-		if (radio->riva_data_req.cmd_params.length <= MAX_RIVA_PEEK_RSP_SIZE) {
 			memcpy(radio->riva_data_req.data, (void *)ctrl->value,
 						radio->riva_data_req.cmd_params.length);
 			radio->riva_data_req.cmd_params.subopcode = RIVA_POKE_OPCODE;
 			retval = hci_poke_data(&radio->riva_data_req , radio->fm_hdev);
-		} else {
-			FMDERR("Can not copy into driver's buffer. Length %d is more than"
-			 "the buffer size %d\n", ctrl->value, MAX_RIVA_PEEK_RSP_SIZE);
-			retval = -EINVAL;
-		}
 		break;
 	case V4L2_CID_PRIVATE_IRIS_SSBI_ACCS_ADDR:
 		radio->ssbi_data_accs.start_addr = ctrl->value;
@@ -4421,7 +4402,7 @@ static int iris_fops_release(struct file *file)
 		return -EINVAL;
 
 	if (radio->mode == FM_OFF)
-		goto END;
+		return 0;
 
 	if (radio->mode == FM_RECV)
 		retval = hci_cmd(HCI_FM_DISABLE_RECV_CMD,
@@ -4429,13 +4410,6 @@ static int iris_fops_release(struct file *file)
 	else if (radio->mode == FM_TRANS)
 		retval = hci_cmd(HCI_FM_DISABLE_TRANS_CMD,
 					radio->fm_hdev);
-	} else if (radio->mode == FM_CALIB) {
-		radio->mode = FM_OFF;
-		return retval;
-	}
-END:
-	if (radio->fm_hdev != NULL)
-		radio->fm_hdev->close_smd();
 	if (retval < 0)
 		FMDERR("Err on disable FM %d\n", retval);
 
