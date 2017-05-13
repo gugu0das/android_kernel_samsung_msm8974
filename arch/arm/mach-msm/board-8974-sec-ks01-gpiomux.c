@@ -299,7 +299,7 @@ static struct gpiomux_setting taiko_int = {
 static struct gpiomux_setting nfc_irq_cfg = {
 	.func = GPIOMUX_FUNC_GPIO,
 	.drv = GPIOMUX_DRV_2MA,
-	.pull = GPIOMUX_PULL_NONE,
+	.pull = GPIOMUX_PULL_DOWN,
 	.dir = GPIOMUX_IN,
 };
 

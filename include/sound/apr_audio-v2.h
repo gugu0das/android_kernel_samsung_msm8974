@@ -7028,7 +7028,7 @@ struct sa_params {
 	int16_t m3Dlevel;
 	int16_t BElevel;
 	int16_t CHlevel;
-	int16_t CHRoomSize;
+	int16_t CHRoomSize; 
 	int16_t Clalevel;
 	int16_t volume;
 	int16_t Sqrow;
@@ -7298,7 +7298,7 @@ struct afe_svc_cmd_set_clip_bank_selection {
 /* Ultrasound supported formats */
 #define US_POINT_EPOS_FORMAT_V2 0x0001272D
 #define US_RAW_FORMAT_V2        0x0001272C
-#define US_PROX_FORMAT_V2       0x0001272E
+#define US_PROX_FORMAT_V4       0x0001273B
 #define US_RAW_SYNC_FORMAT      0x0001272F
 #define US_GES_SYNC_FORMAT      0x00012730
 
