@@ -618,8 +618,10 @@ int do_stlog_write(int type, const char __user *buf, int len, bool from_file)
 		goto out;
 	}
 
-	stlog("%s", line);
-
+	line[len] = '\0';
+	error = stlog("%s", line);
+	if ((line[len-1] == '\n') && (error == (len-1)))
+		error++;
 out:
 	kfree(kern_buf);
 	return error;
