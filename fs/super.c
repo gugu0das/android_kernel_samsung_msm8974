@@ -744,8 +744,7 @@ int do_remount_sb(struct super_block *sb, int flags, void *data, int force)
 	   make sure there are no rw files opened */
 	if (remount_ro) {
 		if (force) {
-			sb->s_readonly_remount = 1;
-			smp_wmb();
+			mark_files_ro(sb);
 		} else {
 			retval = sb_prepare_remount_readonly(sb);
 			if (retval)
