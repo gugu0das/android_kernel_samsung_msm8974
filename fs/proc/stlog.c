@@ -69,6 +69,8 @@ static const struct file_operations stlog_operations = {
 static int __init stlog_init(void)
 {
 	proc_create("stlog", S_IRUGO, NULL, &stlog_operations);
+	proc_create("stlog_pipe", S_IRUGO, NULL, &stlog_pipe_operations);
+	proc_create("stlog_version", S_IRUGO, NULL, &stlog_ver_operations);
 	return 0;
 }
 module_init(stlog_init);
