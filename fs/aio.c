@@ -1728,6 +1728,7 @@ long do_io_submit(aio_context_t ctx_id, long nr,
 		if (ret)
 			break;
 	}
+	blk_finish_plug(&plug);
 
 	kiocb_batch_free(ctx, &batch);
 	put_ioctx(ctx);
