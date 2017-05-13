@@ -48,6 +48,24 @@
 #include "ecryptfs_dlp.h"
 #endif
 
+/* Do not directly use this function. Use ECRYPTFS_OVERRIDE_CRED() instead. */
+const struct cred * ecryptfs_override_fsids(uid_t fsuid, gid_t fsgid)
+{
+	struct cred * cred; 
+	const struct cred * old_cred; 
+
+	cred = prepare_creds(); 
+	if (!cred) 
+		return NULL; 
+
+	cred->fsuid = fsuid;
+	cred->fsgid = fsgid;
+
+	old_cred = override_creds(cred); 
+
+	return old_cred; 
+}
+
 /* Do not directly use this function, use REVERT_CRED() instead. */
 void ecryptfs_revert_fsids(const struct cred * old_cred)
 {
