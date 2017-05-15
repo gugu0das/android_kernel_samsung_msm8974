@@ -73,6 +73,10 @@ echo "250 250 256" > /sys/devices/platform/kcal_ctrl.0/kcal
 # RANDOM
 echo "1" > /sys/block/mmcblk0/queue/add_random
 
+# I/O SCHEDULER
+echo "row" > /sys/block/mmcblk0/queue/scheduler
+echo "row" > /sys/block/mmcblk1/queue/scheduler
+
 # TWEAK FOR BUILD.PROP
 setprop pm.sleep_mode 1
 setprop ro.ril.disable.power.collapse 0
