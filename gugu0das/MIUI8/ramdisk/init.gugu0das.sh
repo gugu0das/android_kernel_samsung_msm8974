@@ -66,6 +66,10 @@ echo "1000" > /proc/sys/vm/dirty_writeback_centisecs
 sleep 1
 sync
 
+# KCAL
+echo "1" > /sys/devices/platform/kcal_ctrl.0/kcal_enable
+echo "250 250 256" > /sys/devices/platform/kcal_ctrl.0/kcal
+
 # TWEAK FOR BUILD.PROP
 setprop pm.sleep_mode 1
 setprop ro.ril.disable.power.collapse 0
