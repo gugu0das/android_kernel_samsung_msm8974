@@ -25,102 +25,104 @@ find | cpio -o -H newc | gzip -9 > ramdisk.cpio.gz
 mv ramdisk.cpio.gz ../ramdisk.cpio.gz
 cd $dir
 
-# Touchwiz ks01ltekor Value
-echo "Generating Touchwiz Boot Image"
-./mkbootimg --kernel "$dir/Touchwiz/kernel_ks01ltekor" \
+# Touchwiz hltekor Value
+echo "Generating Touchwiz hltekor Boot Image"
+./mkbootimg --kernel "$dir/Touchwiz/kernel_hltekor" \
 --ramdisk "$dir/Touchwiz/ramdisk.cpio.gz" \
---dt "$dir/Touchwiz/dt.img" \
+--dt "$dir/Touchwiz/dt_hltekor.img" \
 --cmdline "console=null androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F androidboot.bootdevice=msm_sdcc.1 androidboot.selinux=permissive" \
 --base 0x00000000 \
 --pagesize 2048 \
 --ramdisk_offset 0x02000000 \
 --tags_offset 0x01e00000 \
---output $dir/Touchwiz/boot_ks01ltekor.img
+--output $dir/Touchwiz/boot_hltekor.img
 cd $dir/Touchwiz
-echo -n "SEANDROIDENFORCE" >> boot_ks01ltekor.img;
+echo -n "SEANDROIDENFORCE" >> boot_hltekor.img;
 
 cd $dir
 
-# Touchwiz ks01lteeur Value
-echo "Generating Touchwiz Boot Image"
-./mkbootimg --kernel "$dir/Touchwiz/kernel_ks01lteeur" \
+# Touchwiz hlteeur Value
+echo "Generating Touchwiz hlteeur Boot Image"
+./mkbootimg --kernel "$dir/Touchwiz/kernel_hlteeur" \
 --ramdisk "$dir/Touchwiz/ramdisk.cpio.gz" \
---dt "$dir/Touchwiz/dt.img" \
+--dt "$dir/Touchwiz/dt_hlteeur.img" \
 --cmdline "console=null androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F androidboot.bootdevice=msm_sdcc.1 androidboot.selinux=permissive" \
 --base 0x00000000 \
 --pagesize 2048 \
 --ramdisk_offset 0x02000000 \
 --tags_offset 0x01e00000 \
---output $dir/Touchwiz/boot_ks01lteeur.img
+--output $dir/Touchwiz/boot_hlteeur.img
 cd $dir/Touchwiz
-echo -n "SEANDROIDENFORCE" >> boot_ks01lteeur.img;
+echo -n "SEANDROIDENFORCE" >> boot_hlteeur.img;
+
 
 #
-# MIUI8 Kernel
+# Cyanogenmod_13.0/LineageOS_13.0 Kernel
 #
 
 # Create ramdisk.cpio.gz
-cd $dir/MIUI8/ramdisk
+cd $dir/Cyanogenmod_13.0/ramdisk
 find | cpio -o -H newc | gzip -9 > ramdisk.cpio.gz
 mv ramdisk.cpio.gz ../ramdisk.cpio.gz
 cd $dir
 
-# MIUI8 ks01ltekor Value
-echo "Generating MIUI8 Boot Image"
-./mkbootimg --kernel "$dir/MIUI8/kernel_ks01ltekor" \
---ramdisk "$dir/MIUI8/ramdisk.cpio.gz" \
---dt "$dir/MIUI8/dt.img" \
+# Cyanogenmod_13.0/LineageOS_13.0 hltekor Value
+echo "Generating Cyanogenmod_13.0 hltekor Boot Image"
+./mkbootimg --kernel "$dir/Cyanogenmod_13.0/kernel_hltekor" \
+--ramdisk "$dir/Cyanogenmod_13.0/ramdisk.cpio.gz" \
+--dt "$dir/Cyanogenmod_13.0/dt_hltekor.img" \
 --cmdline "console=null androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F androidboot.bootdevice=msm_sdcc.1 androidboot.selinux=permissive" \
 --base 0x00000000 \
 --pagesize 2048 \
 --ramdisk_offset 0x02000000 \
 --tags_offset 0x01e00000 \
---output $dir/MIUI8/boot_ks01ltekor.img
-cd $dir/MIUI8
-echo -n "SEANDROIDENFORCE" >> boot_ks01ltekor.img;
+--output $dir/Cyanogenmod_13.0/boot_hltekor.img
+cd $dir/Cyanogenmod_13.0
+echo -n "SEANDROIDENFORCE" >> boot_hltekor.img;
 
 cd $dir
 
-# MIUI8 ks01lteeur Value
-echo "Generating MIUI8 Boot Image"
-./mkbootimg --kernel "$dir/MIUI8/kernel_ks01lteeur" \
---ramdisk "$dir/MIUI8/ramdisk.cpio.gz" \
---dt "$dir/MIUI8/dt.img" \
+# Cyanogenmod_13.0/LineageOS_13.0 hlteeur Value
+echo "Generating Cyanogenmod_13.0 hlteeur Boot Image"
+./mkbootimg --kernel "$dir/Cyanogenmod_13.0/kernel_hlteeur" \
+--ramdisk "$dir/Cyanogenmod_13.0/ramdisk.cpio.gz" \
+--dt "$dir/Cyanogenmod_13.0/dt_hlteeur.img" \
 --cmdline "console=null androidboot.hardware=qcom user_debug=31 msm_rtb.filter=0x3F androidboot.bootdevice=msm_sdcc.1 androidboot.selinux=permissive" \
 --base 0x00000000 \
 --pagesize 2048 \
 --ramdisk_offset 0x02000000 \
 --tags_offset 0x01e00000 \
---output $dir/MIUI8/boot_ks01lteeur.img
-cd $dir/MIUI8
-echo -n "SEANDROIDENFORCE" >> boot_ks01lteeur.img;
+--output $dir/Cyanogenmod_13.0/boot_hlteeur.img
+cd $dir/Cyanogenmod_13.0
+echo -n "SEANDROIDENFORCE" >> boot_hlteeur.img;
 
 # Move Kernel
 echo "Generating gugu0das Kernel Flashing File"
 cd $dir
-mv Touchwiz/boot_ks01ltekor.img gugu0das_kernel-TW-M-ks01ltekor-Release-3/boot.img
-mv Touchwiz/boot_ks01lteeur.img gugu0das_kernel-TW-M-ks01lteeur-Release-3/boot.img
-mv MIUI8/boot_ks01ltekor.img gugu0das_kernel-MIUI8-M-ks01ltekor-Release-3/boot.img
-mv MIUI8/boot_ks01lteeur.img gugu0das_kernel-MIUI8-M-ks01lteeur-Release-3/boot.img
+mv Cyanogenmod_13.0/boot_hltekor.img gugu0das_kernel-CM-13.0-hltekor-Release-3/boot.img
+mv Touchwiz/boot_hltekor.img gugu0das_kernel-TW-M-hltekor-Release-3/boot.img
+
+mv Cyanogenmod_13.0/boot_hlteeur.img gugu0das_kernel-CM-13.0-hlteeur-Release-3/boot.img
+mv Touchwiz/boot_hlteeur.img gugu0das_kernel-TW-M-hlteeur-Release-3/boot.img
 
 # Compression
-cd $dir/gugu0das_kernel-TW-M-ks01ltekor-Release-3
-zip -r gugu0das_kernel-TW-M-ks01ltekor-Release-3.zip ./*
-cd $dir/gugu0das_kernel-TW-M-ks01lteeur-Release-3
-zip -r gugu0das_kernel-TW-M-ks01lteeur-Release-3.zip ./*
+cd $dir/gugu0das_kernel-CM-13.0-hltekor-Release-3
+zip -r gugu0das_kernel-CM-13.0-hltekor-Release-3.zip ./*
+cd $dir/gugu0das_kernel-TW-M-hltekor-Release-3
+zip -r gugu0das_kernel-TW-M-hltekor-Release-3.zip ./*
 
-cd $dir/gugu0das_kernel-MIUI8-M-ks01ltekor-Release-3
-zip -r gugu0das_kernel-MIUI8-M-ks01ltekor-Release-3.zip ./*
-cd $dir/gugu0das_kernel-MIUI8-M-ks01lteeur-Release-3
-zip -r gugu0das_kernel-MIUI8-M-ks01lteeur-Release-3.zip ./*
+cd $dir/gugu0das_kernel-CM-13.0-hlteeur-Release-3
+zip -r gugu0das_kernel-CM-13.0-hlteeur-Release-3.zip ./*
+cd $dir/gugu0das_kernel-TW-M-hlteeur-Release-3
+zip -r gugu0das_kernel-TW-M-hlteeur-Release-3.zip ./*
 
 # Move Kernel Flashing File
-cd $dir/gugu0das_kernel-TW-M-ks01ltekor-Release-3
-mv gugu0das_kernel-TW-M-ks01ltekor-Release-3.zip $kernel_dir/gugu0das_kernel-TW-M-ks01ltekor-Release-3.zip
-cd $dir/gugu0das_kernel-TW-M-ks01lteeur-Release-3
-mv gugu0das_kernel-TW-M-ks01lteeur-Release-3.zip $kernel_dir/gugu0das_kernel-TW-M-ks01lteeur-Release-3.zip
+cd $dir/gugu0das_kernel-CM-13.0-hltekor-Release-3
+mv gugu0das_kernel-CM-13.0-hltekor-Release-3.zip $kernel_dir/gugu0das_kernel-CM-13.0-hltekor-Release-3.zip
+cd $dir/gugu0das_kernel-TW-M-hltekor-Release-3
+mv gugu0das_kernel-TW-M-hltekor-Release-3.zip $kernel_dir/gugu0das_kernel-TW-M-hltekor-Release-3.zip
 
-cd $dir/gugu0das_kernel-MIUI8-M-ks01ltekor-Release-3
-mv gugu0das_kernel-MIUI8-M-ks01ltekor-Release-3.zip $kernel_dir/gugu0das_kernel-MIUI8-M-ks01ltekor-Release-3.zip
-cd $dir/gugu0das_kernel-MIUI8-M-ks01lteeur-Release-3
-mv gugu0das_kernel-MIUI8-M-ks01lteeur-Release-3.zip $kernel_dir/gugu0das_kernel-MIUI8-M-ks01lteeur-Release-3.zip
+cd $dir/gugu0das_kernel-CM-13.0-hlteeur-Release-3
+mv gugu0das_kernel-CM-13.0-hlteeur-Release-3.zip $kernel_dir/gugu0das_kernel-CM-13.0-hlteeur-Release-3.zip
+cd $dir/gugu0das_kernel-TW-M-hlteeur-Release-3
+mv gugu0das_kernel-TW-M-hlteeur-Release-3.zip $kernel_dir/gugu0das_kernel-TW-M-hlteeur-Release-3.zip

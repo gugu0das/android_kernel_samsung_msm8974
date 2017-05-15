@@ -1157,7 +1157,7 @@ static int wacom_flash_write(struct wacom_i2c *wac_i2c,
 
 		ret = wacom_flash_write_block(wac_i2c, flash_data, ulAddress,
 				       &command_id);
-		if (ret < 0)
+		if (ret < 1)
 			return ret;
 
 		pageNo++;
