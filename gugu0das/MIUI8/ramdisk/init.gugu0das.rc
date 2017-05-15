@@ -25,6 +25,15 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+# gugu0das
+service gugu0das-init /system/bin/sh /init.gugu0das.sh
+    class main
+    user root
+    oneshot
+
+on property:sys.boot_completed=1
+    start gugu0das-init
+
 # init.d
 service postboot-init /system/xbin/busybox run-parts /system/etc/init.d
     user root
@@ -50,3 +59,6 @@ on post-fs-data
 service privatemode /system/bin/sdcard /data/privatemode /mnt/shell/privatemode 1000 1000
     class late_start
     oneshot
+
+# SSWAP
+    write /proc/sys/vm/swappiness 130
