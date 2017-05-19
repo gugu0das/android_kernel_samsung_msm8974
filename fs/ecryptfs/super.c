@@ -222,13 +222,4 @@ const struct super_operations ecryptfs_sops = {
 	.drop_inode = generic_delete_inode,
 };
 
-const struct super_operations ecryptfs_multimount_sops = {
-	.alloc_inode = ecryptfs_alloc_inode,
-	.destroy_inode = ecryptfs_destroy_inode,
-	.statfs = ecryptfs_statfs,
-	.remount_fs = NULL,
-	.evict_inode = ecryptfs_evict_inode,
-	.show_options = ecryptfs_show_options,
-	.drop_inode = generic_delete_inode,
-	.unlink_callback = ecryptfs_propagate_lookup,
 };
