@@ -479,6 +479,24 @@ out:
 	return rc;
 }
 
+int ecryptfs_check_subfs(struct dentry *de, struct nameidata *nd, char *fs)
+{
+	struct dentry *lower_dentry = NULL;
+
+	lower_dentry = ecryptfs_dentry_to_lower(de);
+	if (!lower_dentry->d_op || !lower_dentry->d_op->d_revalidate)
+	{
+		return -1;
+	}
+
+	if(!strcmp(lower_dentry->d_sb->s_type->name, fs))
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
 /**
  * ecryptfs_create
  * @dir: The inode of the directory in which to create the file.
