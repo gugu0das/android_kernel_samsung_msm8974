@@ -515,7 +515,11 @@ ecryptfs_create(struct inode *directory_inode, struct dentry *ecryptfs_dentry,
 	struct inode *ecryptfs_inode;
 	int rc;
 
-	ecryptfs_inode = ecryptfs_do_create(directory_inode, ecryptfs_dentry, mode);
+	if(ecryptfs_check_subfs(ecryptfs_dentry, nd, "sdcardfs") == 1)
+		ecryptfs_inode = ecryptfs_do_create2(directory_inode, ecryptfs_dentry,
+				mode, nd);
+	else
+		ecryptfs_inode = ecryptfs_do_create(directory_inode, ecryptfs_dentry, mode);
 		
 	if (unlikely(IS_ERR(ecryptfs_inode))) {
 		ecryptfs_printk(KERN_WARNING, "Failed to create file in"
