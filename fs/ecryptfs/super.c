@@ -212,59 +212,6 @@ static int ecryptfs_show_options(struct seq_file *m, struct dentry *root)
 	return 0;
 }
 
-static long ecryptfs_propagate_lookup(struct super_block *sb, char *pathname){
-	int ret = 0;
-	char *propagate_path;
-	struct ecryptfs_sb_info *sbi;
-	struct ecryptfs_propagate_stat *stat;
-	struct path sibling_path;
-	const struct cred *saved_cred = NULL;
-
-	sbi = ecryptfs_superblock_to_private(sb);
-	stat = &sbi->propagate_stat;
-	propagate_path = kmalloc(PATH_MAX, GFP_KERNEL);
-
-	ECRYPTFS_OVERRIDE_ROOT_CRED(saved_cred);
-	if (stat->propagate_type != TYPE_E_NONE && stat->propagate_type != TYPE_E_DEFAULT) {
-		snprintf(propagate_path, PATH_MAX, "%s/%s/%s/%s",
-				stat->base_path, "default", stat->label, pathname);
-		ret = (long)kern_path(propagate_path, LOOKUP_FOLLOW, &sibling_path);
-		if (!ret) {
-			path_put(&sibling_path);
-		}
-	}
-
-	if (stat->propagate_type != TYPE_E_NONE && stat->propagate_type != TYPE_E_READ) {
-		snprintf(propagate_path, PATH_MAX, "%s/%s/%s/%s",
-				stat->base_path, "read", stat->label, pathname);
-		ret = (long)kern_path(propagate_path, LOOKUP_FOLLOW, &sibling_path);
-		if (!ret) {
-			path_put(&sibling_path);
-		}
-	}
-
-	if (stat->propagate_type != TYPE_E_NONE && stat->propagate_type != TYPE_E_WRITE) {
-		snprintf(propagate_path, PATH_MAX, "%s/%s/%s/%s",
-				stat->base_path, "write", stat->label, pathname);
-		ret = (long)kern_path(propagate_path, LOOKUP_FOLLOW, &sibling_path);
-		if (!ret) {
-			path_put(&sibling_path);
-		}
-	}
-
-	if (stat->propagate_type != TYPE_E_NONE) {
-		snprintf(propagate_path, PATH_MAX, "/storage/%s/%s",
-				stat->label, pathname);
-		ret = (long)kern_path(propagate_path, LOOKUP_FOLLOW, &sibling_path);
-		if (!ret) {
-			path_put(&sibling_path);
-		}
-	}
-	ECRYPTFS_REVERT_CRED(saved_cred);
-	kfree(propagate_path);
-	return ret;
-}
-
 const struct super_operations ecryptfs_sops = {
 	.alloc_inode = ecryptfs_alloc_inode,
 	.destroy_inode = ecryptfs_destroy_inode,
