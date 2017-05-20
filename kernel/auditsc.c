@@ -131,6 +131,11 @@ struct audit_names {
 	bool		should_free;
 };
 
+struct audit_proctitle {
+	int	len;	/* length of the cmdline field. */
+	char	*value;	/* the cmdline field */
+};
+
 struct audit_aux_data {
 	struct audit_aux_data	*next;
 	int			type;
