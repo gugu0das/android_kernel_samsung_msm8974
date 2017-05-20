@@ -272,6 +272,7 @@ struct audit_context {
 		} mmap;
 	};
 	int fds[2];
+	struct audit_proctitle proctitle;
 
 #if AUDIT_DEBUG
 	int		    put_count;
