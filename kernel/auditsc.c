@@ -69,6 +69,8 @@
 #include <linux/fs_struct.h>
 #include <linux/compat.h>
 #include <linux/uaccess.h>
+#include <linux/ctype.h>
+#include <asm/unistd.h>
 
 #include "audit.h"
 
