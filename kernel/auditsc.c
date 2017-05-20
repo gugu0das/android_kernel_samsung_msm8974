@@ -1129,6 +1129,7 @@ static inline void audit_free_context(struct audit_context *context)
 		audit_free_aux(context);
 		kfree(context->filterkey);
 		kfree(context->sockaddr);
+		audit_proctitle_free(context);
 		kfree(context);
 		context  = previous;
 	} while (context);
