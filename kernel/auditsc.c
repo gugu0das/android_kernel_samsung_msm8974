@@ -1613,19 +1613,18 @@ static void audit_log_exit(struct audit_context *context, struct task_struct *ts
 	context->fsgid = cred->fsgid;
 	context->personality = tsk->personality;
 
-	if (context->major != 294) /* __NR_setsockopt */
-	{
-		ab = audit_log_start(context, GFP_KERNEL, AUDIT_SYSCALL);
-		if (!ab)
-			return;		/* audit_panic has been called */
-		audit_log_format(ab, "arch=%x syscall=%d",
-				 context->arch, context->major);
-		if (context->personality != PER_LINUX)
-			audit_log_format(ab, " per=%lx", context->personality);
-		if (context->return_valid)
-			audit_log_format(ab, " success=%s exit=%ld",
-					 (context->return_valid==AUDITSC_SUCCESS)?"yes":"no",
-					 context->return_code);
+	if (context->major != __NR_setsockopt) {
+	ab = audit_log_start(context, GFP_KERNEL, AUDIT_SYSCALL);
+	if (!ab)
+		return;		/* audit_panic has been called */
+	audit_log_format(ab, "arch=%x syscall=%d",
+			 context->arch, context->major);
+	if (context->personality != PER_LINUX)
+		audit_log_format(ab, " per=%lx", context->personality);
+	if (context->return_valid)
+		audit_log_format(ab, " success=%s exit=%ld",
+				 (context->return_valid==AUDITSC_SUCCESS)?"yes":"no",
+				 context->return_code);
 
 		spin_lock_irq(&tsk->sighand->siglock);
 		if (tsk->signal && tsk->signal->tty && tsk->signal->tty->name)
@@ -1745,6 +1744,9 @@ static void audit_log_exit(struct audit_context *context, struct task_struct *ts
 	list_for_each_entry(n, &context->names_list, list)
 		audit_log_name(context, n, i++, &call_panic);
 
+	if (context->major != __NR_setsockopt) {
+	audit_log_proctitle(tsk, context);
+	}
 	/* Send end of event record to help user space know we are finished */
 	ab = audit_log_start(context, GFP_KERNEL, AUDIT_EOE);
 	if (ab)
