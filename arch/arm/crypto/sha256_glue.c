@@ -210,36 +210,6 @@ static struct shash_alg algs[] = { {
 	}
 } };
 
-static int __init sha256_mod_init(void)
-{
-	int res = crypto_register_shashes(algs, ARRAY_SIZE(algs));
-
-	if (res < 0)
-		return res;
-
-	if (IS_ENABLED(CONFIG_KERNEL_MODE_NEON) && cpu_has_neon()) {
-		res = crypto_register_shashes(sha256_neon_algs,
-					      ARRAY_SIZE(sha256_neon_algs));
-
-		if (res < 0)
-			crypto_unregister_shashes(algs, ARRAY_SIZE(algs));
-	}
-
-	return res;
-}
-
-static void __exit sha256_mod_fini(void)
-{
-	crypto_unregister_shashes(algs, ARRAY_SIZE(algs));
-
-	if (IS_ENABLED(CONFIG_KERNEL_MODE_NEON) && cpu_has_neon())
-		crypto_unregister_shashes(sha256_neon_algs,
-					  ARRAY_SIZE(sha256_neon_algs));
-}
-
-module_init(sha256_mod_init);
-module_exit(sha256_mod_fini);
-
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("SHA256 Secure Hash Algorithm (ARM), including NEON");
 
