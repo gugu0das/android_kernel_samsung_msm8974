@@ -26,7 +26,9 @@
 
 #define SYNAPTICS_DEVICE_NAME	"GT-I95XX"
 /* DVFS feature : TOUCH BOOSTER */
+#ifdef CONFIG_CPU_FREQ_LIMIT
 #define TSP_BOOSTER
+#endif
 #define DVFS_STAGE_TRIPLE	3
 #ifdef TSP_BOOSTER
 #define DVFS_STAGE_DUAL		2
