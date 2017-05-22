@@ -21,7 +21,7 @@ dir=$(pwd)/gugu0das
 
 # Create ramdisk.cpio.gz
 cd $dir/Touchwiz/ramdisk
-find | cpio -o -H newc | gzip -9 > ramdisk.cpio.gz
+find ./ ! -name ramdisk.cpio.gz | cpio -H newc -o | gzip -9 > ramdisk.cpio.gz
 mv ramdisk.cpio.gz ../ramdisk.cpio.gz
 cd $dir
 
@@ -45,7 +45,7 @@ echo -n "SEANDROIDENFORCE" >> boot.img;
 
 # Create ramdisk.cpio.gz
 cd $dir/Cyanogenmod_13.0/ramdisk
-find | cpio -o -H newc | gzip -9 > ramdisk.cpio.gz
+find ./ ! -name ramdisk.cpio.gz | cpio -H newc -o | gzip -9 > ramdisk.cpio.gz
 mv ramdisk.cpio.gz ../ramdisk.cpio.gz
 cd $dir
 
@@ -69,7 +69,7 @@ echo -n "SEANDROIDENFORCE" >> boot.img;
 
 # Create ramdisk.cpio.gz
 cd $dir/MIUI8/ramdisk
-find | cpio -o -H newc | gzip -9 > ramdisk.cpio.gz
+find ./ ! -name ramdisk.cpio.gz | cpio -H newc -o | gzip -9 > ramdisk.cpio.gz
 mv ramdisk.cpio.gz ../ramdisk.cpio.gz
 cd $dir
 
