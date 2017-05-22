@@ -78,6 +78,12 @@ echo "250 250 256" > /sys/devices/platform/kcal_ctrl.0/kcal
 # RANDOM
 echo "1" > /sys/block/mmcblk0/queue/add_random
 
+# GOVERNOR
+echo "arteractive" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+echo "arteractive" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
+echo "arteractive" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
+echo "arteractive" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
+
 # I/O SCHEDULER
 echo "row" > /sys/block/mmcblk0/queue/scheduler
 echo "row" > /sys/block/mmcblk1/queue/scheduler
