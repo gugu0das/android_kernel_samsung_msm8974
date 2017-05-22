@@ -35,7 +35,6 @@ struct files_stat_struct files_stat = {
 };
 
 DECLARE_LGLOCK(files_lglock);
-DEFINE_LGLOCK(files_lglock);
 
 /* SLAB cache for file structures */
 static struct kmem_cache *filp_cachep __read_mostly;
