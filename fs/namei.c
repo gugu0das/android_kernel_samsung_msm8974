@@ -16,7 +16,6 @@
 
 #include <linux/init.h>
 #include <linux/export.h>
-#include <linux/kernel.h>
 #include <linux/slab.h>
 #include <linux/fs.h>
 #include <linux/namei.h>
@@ -39,9 +38,6 @@
 
 #include "internal.h"
 #include "mount.h"
-#ifdef CONFIG_SDCARD_FS
-#include "sdcardfs/sdcardfs.h"
-#endif
 
 /* [Feb-1997 T. Schoebel-Theuer]
  * Fundamental changes in the pathname lookup mechanisms (namei)
@@ -1789,6 +1785,14 @@ static int path_lookupat(int dfd, const char *name,
 		}
 	}
 
+	if (!err) {
+		struct super_block *sb = nd->inode->i_sb;
+		if (sb->s_flags & MS_RDONLY) {
+			if (d_is_su(nd->path.dentry) && !su_visible())
+				err = -ENOENT;
+		}
+	}
+
 	if (base)
 		fput(base);
 
@@ -2804,6 +2808,8 @@ static long do_rmdir(int dfd, const char __user *pathname)
 	char * name;
 	struct dentry *dentry;
 	struct nameidata nd;
+	char *path_buf = NULL;
+	char *propagate_path = NULL;
 
 	error = user_path_parent(dfd, pathname, &nd, &name);
 	if (error)
@@ -2838,6 +2844,10 @@ static long do_rmdir(int dfd, const char __user *pathname)
 	error = security_path_rmdir(&nd.path, dentry);
 	if (error)
 		goto exit4;
+	if (nd.path.dentry->d_sb->s_op->unlink_callback) {
+		path_buf = kmalloc(PATH_MAX, GFP_KERNEL);
+		propagate_path = dentry_path_raw(dentry, path_buf, PATH_MAX);
+	}
 	error = vfs_rmdir(nd.path.dentry->d_inode, dentry);
 exit4:
 	mnt_drop_write(nd.path.mnt);
@@ -2845,6 +2855,14 @@ exit3:
 	dput(dentry);
 exit2:
 	mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
+	if (path_buf && !error) {
+		nd.path.dentry->d_sb->s_op->unlink_callback(nd.path.dentry->d_sb,
+			propagate_path);
+	}
+	if (path_buf) {
+		kfree(path_buf);
+		path_buf = NULL;
+	}
 exit1:
 	path_put(&nd.path);
 	putname(name);

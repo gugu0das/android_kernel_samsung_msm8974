@@ -282,22 +282,6 @@ static struct shash_alg algs[] = { {
 	}
 } };
 
-static int __init sha512_neon_mod_init(void)
-{
-	if (!cpu_has_neon())
-		return -ENODEV;
-
-	return crypto_register_shashes(algs, ARRAY_SIZE(algs));
-}
-
-static void __exit sha512_neon_mod_fini(void)
-{
-	crypto_unregister_shashes(algs, ARRAY_SIZE(algs));
-}
-
-module_init(sha512_neon_mod_init);
-module_exit(sha512_neon_mod_fini);
-
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("SHA512 Secure Hash Algorithm, NEON accelerated");
 
