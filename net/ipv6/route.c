@@ -959,6 +959,8 @@ struct dst_entry * ip6_route_output(struct net *net, const struct sock *sk,
 				    struct flowi6 *fl6)
 {
 	int flags = 0;
+	
+	fl6->flowi6_iif = LOOPBACK_IFINDEX;
 
 	fl6->flowi6_iif = net->loopback_dev->ifindex;
 

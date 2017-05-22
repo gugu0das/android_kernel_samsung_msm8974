@@ -214,6 +214,8 @@ static struct sock *ping_lookup(struct net *net, struct sk_buff *skb, u16 ident)
 					     &ipv6_hdr(skb)->daddr))
 				continue;
 #endif
+		} else {
+			continue;
 		}
 
 		if (sk->sk_bound_dev_if && sk->sk_bound_dev_if != dif)
@@ -254,7 +256,7 @@ int ping_init_sock(struct sock *sk)
 	int ret = 0;
 
 	if (sk->sk_family == AF_INET6)
-		inet6_sk(sk)->ipv6only = 1;
+                inet6_sk(sk)->ipv6only = 1;
 
 	inet_get_ping_group_range_net(net, range, range+1);
 	if (range[0] <= group && group <= range[1])
