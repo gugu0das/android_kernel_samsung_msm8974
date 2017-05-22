@@ -59,7 +59,7 @@ echo "1" > /sys/kernel/fast_charge/force_fast_charge
 echo "1" > /sys/kernel/sched/arch_power
 
 # VM
-echo "66" > /proc/sys/vm/swappiness
+echo "130" > /proc/sys/vm/swappiness
 echo "1" > /proc/sys/vm/laptop_mode
 echo "500" > /proc/sys/vm/dirty_expire_centisecs
 echo "1000" > /proc/sys/vm/dirty_writeback_centisecs
