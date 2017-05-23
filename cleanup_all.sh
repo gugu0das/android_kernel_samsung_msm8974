@@ -14,9 +14,9 @@ rm -f gugu0das/Touchwiz/kernel
 rm -f gugu0das/MIUI8/ramdisk.cpio.gz
 rm -f gugu0das/MIUI8/boot.img
 rm -f gugu0das/MIUI8/kernel
-rm -f gugu0das/gugu0das_kernel-CM-13.0-jactivelteskt-Release-3/boot.img
-rm -f gugu0das/gugu0das_kernel-TW-M-jactivelteskt-Release-3/boot.img
-rm -f gugu0das/gugu0das_kernel-MIUI8-M-jactivelteskt-Release-3/boot.img
-rm -f gugu0das_kernel-CM-13.0-jactivelteskt-Release-3.zip
-rm -f gugu0das_kernel-TW-M-jactivelteskt-Release-3.zip
-rm -f gugu0das_kernel-MIUI8-M-jactivelteskt-Release-3.zip
+rm -f gugu0das/gugu0das_kernel-CM-13.0-jactivelteskt-Release-3.1/boot.img
+rm -f gugu0das/gugu0das_kernel-TW-M-jactivelteskt-Release-3.1/boot.img
+rm -f gugu0das/gugu0das_kernel-MIUI8-M-jactivelteskt-Release-3.1/boot.img
+rm -f gugu0das_kernel-CM-13.0-jactivelteskt-Release-3.1.zip
+rm -f gugu0das_kernel-TW-M-jactivelteskt-Release-3.1.zip
+rm -f gugu0das_kernel-MIUI8-M-jactivelteskt-Release-3.1.zip

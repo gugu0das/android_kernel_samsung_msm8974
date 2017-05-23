@@ -90,22 +90,22 @@ echo -n "SEANDROIDENFORCE" >> boot.img;
 # Move Kernel
 echo "Generating gugu0das Kernel Flashing File"
 cd $dir
-mv Cyanogenmod_13.0/boot.img gugu0das_kernel-CM-13.0-jactivelteskt-Release-3/boot.img
-mv Touchwiz/boot.img gugu0das_kernel-TW-M-jactivelteskt-Release-3/boot.img
-mv MIUI8/boot.img gugu0das_kernel-MIUI8-M-jactivelteskt-Release-3/boot.img
+mv Cyanogenmod_13.0/boot.img gugu0das_kernel-CM-13.0-jactivelteskt-Release-3.1/boot.img
+mv Touchwiz/boot.img gugu0das_kernel-TW-M-jactivelteskt-Release-3.1/boot.img
+mv MIUI8/boot.img gugu0das_kernel-MIUI8-M-jactivelteskt-Release-3.1/boot.img
 
 # Compression
-cd $dir/gugu0das_kernel-CM-13.0-jactivelteskt-Release-3
-zip -r gugu0das_kernel-CM-13.0-jactivelteskt-Release-3.zip ./*
-cd $dir/gugu0das_kernel-TW-M-jactivelteskt-Release-3
-zip -r gugu0das_kernel-TW-M-jactivelteskt-Release-3.zip ./*
-cd $dir/gugu0das_kernel-MIUI8-M-jactivelteskt-Release-3
-zip -r gugu0das_kernel-MIUI8-M-jactivelteskt-Release-3.zip ./*
+cd $dir/gugu0das_kernel-CM-13.0-jactivelteskt-Release-3.1
+zip -r gugu0das_kernel-CM-13.0-jactivelteskt-Release-3.1.zip ./*
+cd $dir/gugu0das_kernel-TW-M-jactivelteskt-Release-3.1
+zip -r gugu0das_kernel-TW-M-jactivelteskt-Release-3.1.zip ./*
+cd $dir/gugu0das_kernel-MIUI8-M-jactivelteskt-Release-3.1
+zip -r gugu0das_kernel-MIUI8-M-jactivelteskt-Release-3.1.zip ./*
 
 # Move Kernel Flashing File
-cd $dir/gugu0das_kernel-CM-13.0-jactivelteskt-Release-3
-mv gugu0das_kernel-CM-13.0-jactivelteskt-Release-3.zip $kernel_dir/gugu0das_kernel-CM-13.0-jactivelteskt-Release-3.zip
-cd $dir/gugu0das_kernel-TW-M-jactivelteskt-Release-3
-mv gugu0das_kernel-TW-M-jactivelteskt-Release-3.zip $kernel_dir/gugu0das_kernel-TW-M-jactivelteskt-Release-3.zip
-cd $dir/gugu0das_kernel-MIUI8-M-jactivelteskt-Release-3
-mv gugu0das_kernel-MIUI8-M-jactivelteskt-Release-3.zip $kernel_dir/gugu0das_kernel-MIUI8-M-jactivelteskt-Release-3.zip
+cd $dir/gugu0das_kernel-CM-13.0-jactivelteskt-Release-3.1
+mv gugu0das_kernel-CM-13.0-jactivelteskt-Release-3.1.zip $kernel_dir/gugu0das_kernel-CM-13.0-jactivelteskt-Release-3.1.zip
+cd $dir/gugu0das_kernel-TW-M-jactivelteskt-Release-3.1
+mv gugu0das_kernel-TW-M-jactivelteskt-Release-3.1.zip $kernel_dir/gugu0das_kernel-TW-M-jactivelteskt-Release-3.1.zip
+cd $dir/gugu0das_kernel-MIUI8-M-jactivelteskt-Release-3.1
+mv gugu0das_kernel-MIUI8-M-jactivelteskt-Release-3.1.zip $kernel_dir/gugu0das_kernel-MIUI8-M-jactivelteskt-Release-3.1.zip
