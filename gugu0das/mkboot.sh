@@ -99,30 +99,30 @@ echo -n "SEANDROIDENFORCE" >> boot_hlteeur.img;
 # Move Kernel
 echo "Generating gugu0das Kernel Flashing File"
 cd $dir
-mv Cyanogenmod_13.0/boot_hltekor.img gugu0das_kernel-CM-13.0-hltekor-Release-3/boot.img
-mv Touchwiz/boot_hltekor.img gugu0das_kernel-TW-M-hltekor-Release-3/boot.img
+mv Cyanogenmod_13.0/boot_hltekor.img gugu0das_kernel-CM-13.0-hltekor-Release-3.1/boot.img
+mv Touchwiz/boot_hltekor.img gugu0das_kernel-TW-M-hltekor-Release-3.1/boot.img
 
-mv Cyanogenmod_13.0/boot_hlteeur.img gugu0das_kernel-CM-13.0-hlteeur-Release-3/boot.img
-mv Touchwiz/boot_hlteeur.img gugu0das_kernel-TW-M-hlteeur-Release-3/boot.img
+mv Cyanogenmod_13.0/boot_hlteeur.img gugu0das_kernel-CM-13.0-hlteeur-Release-3.1/boot.img
+mv Touchwiz/boot_hlteeur.img gugu0das_kernel-TW-M-hlteeur-Release-3.1/boot.img
 
 # Compression
-cd $dir/gugu0das_kernel-CM-13.0-hltekor-Release-3
-zip -r gugu0das_kernel-CM-13.0-hltekor-Release-3.zip ./*
-cd $dir/gugu0das_kernel-TW-M-hltekor-Release-3
-zip -r gugu0das_kernel-TW-M-hltekor-Release-3.zip ./*
+cd $dir/gugu0das_kernel-CM-13.0-hltekor-Release-3.1
+zip -r gugu0das_kernel-CM-13.0-hltekor-Release-3.1.zip ./*
+cd $dir/gugu0das_kernel-TW-M-hltekor-Release-3.1
+zip -r gugu0das_kernel-TW-M-hltekor-Release-3.1.zip ./*
 
-cd $dir/gugu0das_kernel-CM-13.0-hlteeur-Release-3
-zip -r gugu0das_kernel-CM-13.0-hlteeur-Release-3.zip ./*
-cd $dir/gugu0das_kernel-TW-M-hlteeur-Release-3
-zip -r gugu0das_kernel-TW-M-hlteeur-Release-3.zip ./*
+cd $dir/gugu0das_kernel-CM-13.0-hlteeur-Release-3.1
+zip -r gugu0das_kernel-CM-13.0-hlteeur-Release-3.1.zip ./*
+cd $dir/gugu0das_kernel-TW-M-hlteeur-Release-3.1
+zip -r gugu0das_kernel-TW-M-hlteeur-Release-3.1.zip ./*
 
 # Move Kernel Flashing File
-cd $dir/gugu0das_kernel-CM-13.0-hltekor-Release-3
-mv gugu0das_kernel-CM-13.0-hltekor-Release-3.zip $kernel_dir/gugu0das_kernel-CM-13.0-hltekor-Release-3.zip
-cd $dir/gugu0das_kernel-TW-M-hltekor-Release-3
-mv gugu0das_kernel-TW-M-hltekor-Release-3.zip $kernel_dir/gugu0das_kernel-TW-M-hltekor-Release-3.zip
+cd $dir/gugu0das_kernel-CM-13.0-hltekor-Release-3.1
+mv gugu0das_kernel-CM-13.0-hltekor-Release-3.1.zip $kernel_dir/gugu0das_kernel-CM-13.0-hltekor-Release-3.1.zip
+cd $dir/gugu0das_kernel-TW-M-hltekor-Release-3.1
+mv gugu0das_kernel-TW-M-hltekor-Release-3.1.zip $kernel_dir/gugu0das_kernel-TW-M-hltekor-Release-3.1.zip
 
-cd $dir/gugu0das_kernel-CM-13.0-hlteeur-Release-3
-mv gugu0das_kernel-CM-13.0-hlteeur-Release-3.zip $kernel_dir/gugu0das_kernel-CM-13.0-hlteeur-Release-3.zip
-cd $dir/gugu0das_kernel-TW-M-hlteeur-Release-3
-mv gugu0das_kernel-TW-M-hlteeur-Release-3.zip $kernel_dir/gugu0das_kernel-TW-M-hlteeur-Release-3.zip
+cd $dir/gugu0das_kernel-CM-13.0-hlteeur-Release-3.1
+mv gugu0das_kernel-CM-13.0-hlteeur-Release-3.1.zip $kernel_dir/gugu0das_kernel-CM-13.0-hlteeur-Release-3.1.zip
+cd $dir/gugu0das_kernel-TW-M-hlteeur-Release-3.1
+mv gugu0das_kernel-TW-M-hlteeur-Release-3.1.zip $kernel_dir/gugu0das_kernel-TW-M-hlteeur-Release-3.1.zip
