@@ -1714,9 +1714,11 @@ static int __qseecom_update_cmd_buf(void *msg, bool cleanup,
 
 			if ((data->type != QSEECOM_LISTENER_SERVICE) &&
 					(cmd_req->ifd_data[i].fd > 0)) {
-				if (cmd_req->ifd_data[i].cmd_buf_offset >
-					cmd_req->cmd_req_len -
-					sizeof(struct qseecom_sg_entry)) {
+				if ((cmd_req->cmd_req_len <
+					SG_ENTRY_SZ * sg_ptr->nents) ||
+					(cmd_req->ifd_data[i].cmd_buf_offset >
+					(cmd_req->cmd_req_len -
+					SG_ENTRY_SZ * sg_ptr->nents))) {
 					pr_err("Invalid offset = 0x%x\n",
 						cmd_req->ifd_data[i].
 						cmd_buf_offset);
@@ -1724,9 +1726,11 @@ static int __qseecom_update_cmd_buf(void *msg, bool cleanup,
 				}
 			} else if ((data->type == QSEECOM_LISTENER_SERVICE) &&
 					(lstnr_resp->ifd_data[i].fd > 0)) {
-				if (lstnr_resp->ifd_data[i].cmd_buf_offset >
-							lstnr_resp->resp_len -
-					sizeof(struct qseecom_sg_entry)) {
+				if ((lstnr_resp->resp_len <
+					SG_ENTRY_SZ * sg_ptr->nents) ||
+					(lstnr_resp->ifd_data[i].cmd_buf_offset >
+					(lstnr_resp->resp_len -
+					SG_ENTRY_SZ * sg_ptr->nents))) {
 					pr_err("Invalid offset = 0x%x\n",
 						lstnr_resp->ifd_data[i].
 							cmd_buf_offset);
