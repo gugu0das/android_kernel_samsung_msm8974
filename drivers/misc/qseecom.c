@@ -2977,8 +2977,14 @@ exit_disable_clock:
 
 exit_register_bus_bandwidth_needs:
 	if (qseecom.support_bus_scaling) {
+		int ret2;
 		mutex_lock(&qsee_bw_mutex);
-		ret = qseecom_unregister_bus_bandwidth_needs(data);
+		ret2 = qseecom_unregister_bus_bandwidth_needs(data);
+		pr_info("qseecom_unregister_bus_bandwidth_needs returned %d (ret=%d)\n", ret2, ret); // for debug
+		if (ret2) {
+			pr_err("qseecom_unregister_bus_bandwidth_needs returned %d\n", ret2);
+			ret = (ret || ret2);
+		}
 		mutex_unlock(&qsee_bw_mutex);
 	}
 
