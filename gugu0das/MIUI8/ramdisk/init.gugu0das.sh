@@ -66,11 +66,6 @@ echo "1000" > /proc/sys/vm/dirty_writeback_centisecs
 sleep 1
 sync
 
-# LMK
-chmod 666 /sys/module/lowmemorykiller/parameters/minfree
-chown root /sys/module/lowmemorykiller/parameters/minfree
-echo '14223,18964,23705,52151,71115,75856' > /sys/module/lowmemorykiller/parameters/minfree
-
 # KCAL
 echo "1" > /sys/devices/platform/kcal_ctrl.0/kcal_enable
 echo "250 250 256" > /sys/devices/platform/kcal_ctrl.0/kcal
