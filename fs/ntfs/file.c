@@ -463,7 +463,7 @@ static inline int ntfs_submit_bh_for_read(struct buffer_head *bh)
  * with i_mutex held on the inode (@pages[0]->mapping->host).  There are
  * @nr_pages pages in @pages which are locked but not kmap()ped.  The source
  * data has not yet been copied into the @pages.
- * 
+ *
  * Need to fill any holes with actual clusters, allocate buffers if necessary,
  * ensure all the buffers are mapped, and bring uptodate any buffers that are
  * only partially being written to.
@@ -703,7 +703,7 @@ map_buffer_cached:
 					(bh_pos < pos || bh_end > end)) {
 				u8 *kaddr;
 				unsigned pofs;
-					
+
 				kaddr = kmap_atomic(page);
 				if (bh_pos < pos) {
 					pofs = bh_pos & ~PAGE_CACHE_MASK;
@@ -2096,7 +2096,9 @@ static ssize_t ntfs_file_aio_write_nolock(struct kiocb *iocb,
 	err = file_remove_suid(file);
 	if (err)
 		goto out;
-	file_update_time(file);
+	err = file_update_time(file);
+	if (err)
+		goto out;
 	written = ntfs_file_buffered_write(iocb, iov, nr_segs, pos, ppos,
 			count);
 out:
