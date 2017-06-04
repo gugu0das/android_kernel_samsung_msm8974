@@ -59,8 +59,11 @@ void compare_swap_oom_score_adj(int old_val, int new_val)
 	struct sighand_struct *sighand = current->sighand;
 
 	spin_lock_irq(&sighand->siglock);
-	if (current->signal->oom_score_adj == old_val)
+	if (current->signal->oom_score_adj == old_val) {
 		current->signal->oom_score_adj = new_val;
+		delete_from_adj_tree(current);
+		add_2_adj_tree(current);
+	}
 	trace_oom_score_adj_update(current);
 	spin_unlock_irq(&sighand->siglock);
 }
@@ -81,6 +84,8 @@ int test_set_oom_score_adj(int new_val)
 	spin_lock_irq(&sighand->siglock);
 	old_val = current->signal->oom_score_adj;
 	current->signal->oom_score_adj = new_val;
+	delete_from_adj_tree(current);
+	add_2_adj_tree(current);
 	trace_oom_score_adj_update(current);
 	spin_unlock_irq(&sighand->siglock);
 
@@ -390,7 +395,7 @@ static struct task_struct *select_bad_process(unsigned int *ppoints,
  *
  * Call with tasklist_lock read-locked.
  */
-static void dump_tasks(const struct mem_cgroup *memcg, const nodemask_t *nodemask)
+void dump_tasks(const struct mem_cgroup *memcg, const nodemask_t *nodemask)
 {
 	struct task_struct *p;
 	struct task_struct *task;
@@ -701,10 +706,6 @@ static void clear_system_oom(void)
 	spin_unlock(&zone_scan_lock);
 }
 
-#if defined(CONFIG_SEC_SLOWPATH)
-extern unsigned int oomk_state; /* 0 none, bit_0 time's up, bit_1 OOMK */
-#endif
-
 /**
  * out_of_memory - kill the "best" process when we run out of memory
  * @zonelist: zonelist pointer
@@ -728,10 +729,6 @@ void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
 	unsigned int points;
 	enum oom_constraint constraint = CONSTRAINT_NONE;
 	int killed = 0;
-
-#if defined(CONFIG_SEC_SLOWPATH)
-	oomk_state |= 0x02;
-#endif
 
 	blocking_notifier_call_chain(&oom_notify_list, 0, &freed);
 	if (freed > 0)

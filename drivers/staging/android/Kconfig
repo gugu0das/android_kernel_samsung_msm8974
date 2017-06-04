@@ -73,7 +73,7 @@ config ANDROID_LOW_MEMORY_KILLER
 	bool "Android Low Memory Killer"
 	default N
 	---help---
-	  Register processes to be killed when memory is low
+	  Registers processes to be killed when memory is low
 
 config ANDROID_LOW_MEMORY_KILLER_AUTODETECT_OOM_ADJ_VALUES
 	bool "Android Low Memory Killer: detect oom_adj values"
@@ -83,39 +83,6 @@ config ANDROID_LOW_MEMORY_KILLER_AUTODETECT_OOM_ADJ_VALUES
 	  Detect oom_adj values written to
 	  /sys/module/lowmemorykiller/parameters/adj and convert them
 	  to oom_score_adj values.
-
-config SEC_OOM_KILLER
-	bool "Android OOM Killer"
-	default n
-	help
-	  klaatu@samsung
-	  This enables 'Android-Style oom-killer'
-	  The way to select victim by oom-killer provided by
-	  linux kernel is totally different from android policy.
-	  Hence, it makes more sense that we select the oom victim
-	  as android does when LMK is invoked.
-
-config SEC_DEBUG_LMK_MEMINFO
-	bool "Show Meminfo when lmk invoked"
-	depends on !SAMSUNG_PRODUCT_SHIP
-	default n
-	help
-	  Show memory information when lmk kills process
-
-config SEC_DEBUG_LMK_COUNT_INFO
-	bool "Record LMK execution count"
-	default n
-	help
-	  Show LMK execution count information when lmk invoked
-
-config EXCLUDE_LRU_LIVING_IN_CMA
-	bool "Exclude LRU living is CMA"
-	depends on CMA_PAGE_COUNTING
-	default n
-	help
-	  Number of LRU pages living in CMA area should be excluded
-          so that LMK will kill a process to release memory pressure
-	  This feature based on reclamation prohibition for CMA area.
 
 source "drivers/staging/android/switch/Kconfig"
 
@@ -141,6 +108,29 @@ config KSWAPD_NOSWAP
 	default n
 	help
 	  This option controls swap action in kswapd
+
+config SAMP_HOTNESS
+	bool "Kill hidden process by hotness"
+	default n
+	help
+	  This option change kill hidden process policy in LMK
+
+config ANDROID_LMK_ADJ_RBTREE
+	bool "Use RBTREE for Android Low Memory Killer"
+	depends on ANDROID_LOW_MEMORY_KILLER
+	default N
+	---help---
+	  Use oom_score_adj rbtree to select the best proecss to kill
+	  when system in low memory status.
+
+config ANDROID_BG_SCAN_MEM
+	bool "SCAN free memory more frequently"
+	depends on ANDROID_LOW_MEMORY_KILLER && ANDROID_LMK_ADJ_RBTREE && CGROUP_SCHED
+	default N
+	---help---
+	  Add more free-memory check point. Such as, when a task is moved to
+	  background task groups, we can trigger low memory killer to scan
+	  memory and decide whether it needs to reclaim memory by killing tasks.
 
 endif # if ANDROID
 
