@@ -68,7 +68,7 @@ sync
 
 # KCAL
 echo "1" > /sys/devices/platform/kcal_ctrl.0/kcal_enable
-echo "250 250 256" > /sys/devices/platform/kcal_ctrl.0/kcal
+echo "235 240 255" > /sys/devices/platform/kcal_ctrl.0/kcal
 
 # RANDOM
 echo "1" > /sys/block/mmcblk0/queue/add_random
