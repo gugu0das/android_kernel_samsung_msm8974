@@ -123,6 +123,7 @@ header-y += errno.h
 header-y += errqueue.h
 header-y += ethtool.h
 header-y += eventpoll.h
+header-y += export.h
 header-y += fadvise.h
 header-y += falloc.h
 header-y += fanotify.h
