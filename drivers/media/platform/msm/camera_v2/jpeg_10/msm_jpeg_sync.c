@@ -26,7 +26,7 @@
 #define JPEG_DEV_CNT 3
 #define JPEG_DEC_ID 2
 
-static void msm_jpeg_q_init(char const *name, struct msm_jpeg_q *q_p)
+inline void msm_jpeg_q_init(char const *name, struct msm_jpeg_q *q_p)
 {
 	JPEG_DBG("%s:%d] %s\n", __func__, __LINE__, name);
 	q_p->name = name;
@@ -36,7 +36,7 @@ static void msm_jpeg_q_init(char const *name, struct msm_jpeg_q *q_p)
 	q_p->unblck = 0;
 }
 
-static void *msm_jpeg_q_out(struct msm_jpeg_q *q_p)
+inline void *msm_jpeg_q_out(struct msm_jpeg_q *q_p)
 {
 	unsigned long flags;
 	struct msm_jpeg_q_entry *q_entry_p = NULL;
@@ -62,7 +62,7 @@ static void *msm_jpeg_q_out(struct msm_jpeg_q *q_p)
 	return data;
 }
 
-static int msm_jpeg_q_in(struct msm_jpeg_q *q_p, void *data)
+inline int msm_jpeg_q_in(struct msm_jpeg_q *q_p, void *data)
 {
 	unsigned long flags;
 
@@ -84,7 +84,7 @@ static int msm_jpeg_q_in(struct msm_jpeg_q *q_p, void *data)
 	return 0;
 }
 
-static int msm_jpeg_q_in_buf(struct msm_jpeg_q *q_p,
+inline int msm_jpeg_q_in_buf(struct msm_jpeg_q *q_p,
 	struct msm_jpeg_core_buf *buf)
 {
 	struct msm_jpeg_core_buf *buf_p;
@@ -102,7 +102,7 @@ static int msm_jpeg_q_in_buf(struct msm_jpeg_q *q_p,
 	return 0;
 }
 
-static int msm_jpeg_q_wait(struct msm_jpeg_q *q_p)
+inline int msm_jpeg_q_wait(struct msm_jpeg_q *q_p)
 {
 	int tm = MAX_SCHEDULE_TIMEOUT; /* 500ms */
 	int rc;
@@ -145,7 +145,7 @@ inline int msm_jpeg_q_unblock(struct msm_jpeg_q *q_p)
 	return 0;
 }
 
-static void msm_jpeg_outbuf_q_cleanup(struct msm_jpeg_device *pgmn_dev,
+inline void msm_jpeg_outbuf_q_cleanup(struct msm_jpeg_device *pgmn_dev,
 	struct msm_jpeg_q *q_p, int domain_num)
 {
 	struct msm_jpeg_core_buf *buf_p;
@@ -162,7 +162,7 @@ static void msm_jpeg_outbuf_q_cleanup(struct msm_jpeg_device *pgmn_dev,
 	q_p->unblck = 0;
 }
 
-static void msm_jpeg_q_cleanup(struct msm_jpeg_q *q_p)
+inline void msm_jpeg_q_cleanup(struct msm_jpeg_q *q_p)
 {
 	void *data;
 	JPEG_DBG("%s:%d] %s\n", __func__, __LINE__, q_p->name);

@@ -75,7 +75,11 @@ int msm_camera_fill_vreg_params(struct camera_vreg_t *cam_vreg,
 
 		case CAM_VIO:
 			for (j = 0; j < num_vreg; j++) {
+#ifdef CONFIG_MACH_CHAGALL_KDI
+				if (!strcmp(cam_vreg[j].reg_name, "max77826_ldo8")) {
+#else
 				if (!strcmp(cam_vreg[j].reg_name, "cam_vio")) {
+#endif
 					pr_err("%s:%d i %d j %d cam_vio\n",
 						__func__, __LINE__, i, j);
 					power_setting[i].seq_val = j;
@@ -90,7 +94,11 @@ int msm_camera_fill_vreg_params(struct camera_vreg_t *cam_vreg,
 
 		case CAM_VANA:
 			for (j = 0; j < num_vreg; j++) {
+#ifdef CONFIG_MACH_CHAGALL_KDI
+				if (!strcmp(cam_vreg[j].reg_name, "max77826_ldo11")) {
+#else
 				if (!strcmp(cam_vreg[j].reg_name, "cam_vana")) {
+#endif
 					pr_err("%s:%d i %d j %d cam_vana\n",
 						__func__, __LINE__, i, j);
 					power_setting[i].seq_val = j;
@@ -117,6 +125,38 @@ int msm_camera_fill_vreg_params(struct camera_vreg_t *cam_vreg,
 				}
 			}
 			break;
+
+#ifdef CONFIG_CAMERA_SEPARATE_VT_REGULATOR
+		case VT_CAM_VDIG:
+			for (j = 0; j < num_vreg; j++) {
+				if (!strcmp(cam_vreg[j].reg_name, "max77826_ldo10")) {
+					pr_err("%s:%d i %d j %d vt_cam_vdig\n",
+						__func__, __LINE__, i, j);
+					power_setting[i].seq_val = j;
+					cam_vreg[j].min_voltage = cam_vreg[j].max_voltage =
+						power_setting[i].config_val;
+					pr_err("%s:%d dig min max voltage %ld\n", __func__,
+						__LINE__, power_setting[i].config_val);
+					break;
+				}
+			}
+			break;
+
+		case VT_CAM_VANA:
+			for (j = 0; j < num_vreg; j++) {
+				if (!strcmp(cam_vreg[j].reg_name, "max77826_ldo5")) {
+					pr_err("%s:%d i %d j %d vt_cam_vana\n",
+						__func__, __LINE__, i, j);
+					power_setting[i].seq_val = j;
+					cam_vreg[j].min_voltage = cam_vreg[j].max_voltage =
+						power_setting[i].config_val;
+					pr_err("%s:%d io min max voltage %ld\n", __func__,
+						__LINE__, power_setting[i].config_val);
+					break;
+				}
+			}
+			break;
+#endif
 
 		default:
 			pr_err("%s:%d invalid seq_val %d\n", __func__,
