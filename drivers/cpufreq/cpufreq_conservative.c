@@ -238,8 +238,8 @@ static ssize_t store_down_threshold(struct kobject *a, struct attribute *b,
 	int ret;
 	ret = sscanf(buf, "%u", &input);
 
-	/* cannot be lower than 11 otherwise freq will not fall */
-	if (ret != 1 || input < 11 || input > 100 ||
+	/* cannot be lower than 1 otherwise freq will not fall */
+	if (ret != 1 || input < 1 || input > 100 ||
 			input >= dbs_tuners_ins.up_threshold)
 		return -EINVAL;
 
