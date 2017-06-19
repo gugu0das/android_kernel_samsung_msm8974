@@ -213,10 +213,6 @@ static inline int __pm_genpd_remove_callbacks(struct device *dev, bool clear_td)
 {
 	return -ENOSYS;
 }
-static inline int genpd_attach_cpuidle(struct generic_pm_domain *genpd, int st)
-{
-	return -ENOSYS;
-}
 static inline int genpd_detach_cpuidle(struct generic_pm_domain *genpd)
 {
 	return -ENOSYS;
