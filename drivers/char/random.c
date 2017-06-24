@@ -2111,6 +2111,7 @@ unsigned long get_random_long(void)
 
 	return ret;
 }
+EXPORT_SYMBOL(get_random_long);
 
 /*
  * randomize_range() returns a start address such that
