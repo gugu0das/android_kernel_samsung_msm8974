@@ -217,12 +217,8 @@ static void diag_update_event_mask(uint8_t *buf, int num_bytes)
 	uint8_t *temp = buf + 2;
 
 	mutex_lock(&driver->diagchar_mutex);
-	if (CHK_OVERFLOW(ptr, ptr, ptr+EVENT_MASK_SIZE, num_bytes)) {
-		memcpy(ptr, temp, num_bytes);
-		driver->event_status = DIAG_CTRL_MASK_VALID;
-	} else {
-		pr_err("diag: In %s, not enough buffer space\n", __func__);
-	}
+	memcpy(ptr, temp, num_bytes);
+	driver->event_status = DIAG_CTRL_MASK_VALID;
 	mutex_unlock(&driver->diagchar_mutex);
 }
 
