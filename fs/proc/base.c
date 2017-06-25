@@ -1910,7 +1910,7 @@ static int tid_fd_revalidate(struct dentry *dentry, struct nameidata *nd)
 			rcu_read_lock();
 			file = fcheck_files(files, fd);
 			if (file) {
-				unsigned f_mode = file->f_mode;
+				unsigned i_mode, f_mode = file->f_mode;
 
 				rcu_read_unlock();
 				put_files_struct(files);
@@ -1926,14 +1926,12 @@ static int tid_fd_revalidate(struct dentry *dentry, struct nameidata *nd)
 					inode->i_gid = 0;
 				}
 
-				if (S_ISLNK(inode->i_mode)) {
-					unsigned i_mode = S_IFLNK;
-					if (f_mode & FMODE_READ)
-						i_mode |= S_IRUSR | S_IXUSR;
-					if (f_mode & FMODE_WRITE)
-						i_mode |= S_IWUSR | S_IXUSR;
-					inode->i_mode = i_mode;
-				}
+				i_mode = S_IFLNK;
+				if (f_mode & FMODE_READ)
+					i_mode |= S_IRUSR | S_IXUSR;
+				if (f_mode & FMODE_WRITE)
+					i_mode |= S_IWUSR | S_IXUSR;
+				inode->i_mode = i_mode;
 
 				security_task_to_inode(task, inode);
 				put_task_struct(task);
