@@ -7,6 +7,9 @@
 #define TCPDIAG_GETSOCK 18
 #define DCCPDIAG_GETSOCK 19
 
+#define SOCK_DIAG_BY_FAMILY 20
+#define SOCK_DESTROY_BACKPORT 21
+
 #define INET_DIAG_GETSOCK_MAX 24
 
 /* Socket identity */
