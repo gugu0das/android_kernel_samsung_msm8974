@@ -1623,6 +1623,24 @@ static int __migrate_cma_pinpage(struct page *page, struct vm_area_struct *vma)
 	return 0;
 }
 #endif
+ 
+static inline bool can_follow_write_pte(pte_t pte, struct page *page,
+					unsigned int flags)
+{
+	if (pte_write(pte))
+		return true;
+
+	/*
+	 * Make sure that we are really following CoWed page. We do not really
+	 * have to care about exclusiveness of the page because we only want
+	 * to ensure that once COWed page hasn't disappeared in the meantime
+	 * or it hasn't been merged to a KSM page.
+	 */
+	if ((flags & FOLL_FORCE) && (flags & FOLL_COW))
+		return page && PageAnon(page) && !PageKsm(page);
+
+	return false;
+}
 
 /**
  * follow_page - look up a page descriptor from a user-virtual address
@@ -1706,10 +1724,13 @@ split_fallthrough:
 	pte = *ptep;
 	if (!pte_present(pte))
 		goto no_page;
-	if ((flags & FOLL_WRITE) && !pte_write(pte))
-		goto unlock;
 
 	page = vm_normal_page(vma, address, pte);
+	if ((flags & FOLL_WRITE) && !can_follow_write_pte(pte, page, flags)) {
+		pte_unmap_unlock(ptep, ptl);
+		return NULL;
+	}
+
 	if (unlikely(!page)) {
 		if ((flags & FOLL_DUMP) ||
 		    !is_zero_pfn(pte_pfn(pte)))
@@ -1775,7 +1796,6 @@ split_fallthrough:
 			unlock_page(page);
 		}
 	}
-unlock:
 	pte_unmap_unlock(ptep, ptl);
 out:
 	return page;
@@ -2022,17 +2042,13 @@ int __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
 				 * The VM_FAULT_WRITE bit tells us that
 				 * do_wp_page has broken COW when necessary,
 				 * even if maybe_mkwrite decided not to set
-				 * pte_write. We can thus safely do subsequent
-				 * page lookups as if they were reads. But only
-				 * do so when looping for pte_write is futile:
-				 * in some cases userspace may also be wanting
-				 * to write to the gotten user page, which a
-				 * read fault here might prevent (a readonly
-				 * page might get reCOWed by userspace write).
+				 * pte_write. We cannot simply drop FOLL_WRITE
+				 * here because the COWed page might be gone by
+				 * the time we do the subsequent page lookups.
 				 */
 				if ((ret & VM_FAULT_WRITE) &&
 				    !(vma->vm_flags & VM_WRITE))
-					foll_flags &= ~FOLL_WRITE;
+					foll_flags |= FOLL_COW;
 
 				cond_resched();
 			}
@@ -3384,6 +3400,10 @@ static int do_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
 
 	pte_unmap(page_table);
 
+	/* File mapping without ->vm_ops ? */
+	if (vma->vm_flags & VM_SHARED)
+		return VM_FAULT_SIGBUS;
+
 	/* Check if we need to add a guard page to the stack */
 	if (check_stack_guard_page(vma, address) < 0)
 		return VM_FAULT_SIGBUS;
@@ -3643,6 +3663,9 @@ static int do_linear_fault(struct mm_struct *mm, struct vm_area_struct *vma,
 			- vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
 
 	pte_unmap(page_table);
+	/* The VMA was not fully populated on mmap() or missing VM_DONTEXPAND */
+	if (!vma->vm_ops->fault)
+		return VM_FAULT_SIGBUS;
 	return __do_fault(mm, vma, address, pmd, pgoff, flags, orig_pte);
 }
 
@@ -3701,13 +3724,12 @@ int handle_pte_fault(struct mm_struct *mm,
 	entry = *pte;
 	if (!pte_present(entry)) {
 		if (pte_none(entry)) {
-			if (vma->vm_ops) {
-				if (likely(vma->vm_ops->fault))
-					return do_linear_fault(mm, vma, address,
-						pte, pmd, flags, entry);
-			}
-			return do_anonymous_page(mm, vma, address,
-						 pte, pmd, flags);
+			if (vma->vm_ops)
+				return do_linear_fault(mm, vma, address, pte, pmd,
+						flags, entry);
+
+			return do_anonymous_page(mm, vma, address, pte, pmd,
+					flags);
 		}
 		if (pte_file(entry))
 			return do_nonlinear_fault(mm, vma, address,
