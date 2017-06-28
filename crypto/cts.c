@@ -200,7 +200,7 @@ static int cts_cbc_decrypt(struct crypto_cts_ctx *ctx,
 	memcpy(d + bsize, tmp, lastn);
 
 	/* 5. Append the tail (BB - Ln) bytes of Xn (tmp) to Cn to create En */
-	memcpy(s + bsize + lastn, tmp + lastn, bsize - lastn);
+	strlcpy(s + bsize + lastn, tmp + lastn, bsize - lastn);
 	/* 6. Decrypt En to create Pn-1 */
 	memset(iv, 0, sizeof(iv));
 	sg_set_buf(&sgsrc[0], s + bsize, bsize);
