@@ -1558,9 +1558,6 @@ void kgsl_pwrctrl_enable(struct kgsl_device *device)
 	} else {
 		level = pwr->default_pwrlevel;
 	}
-
-	pwr->bus_mod = 0;
-
 	kgsl_pwrctrl_pwrlevel_change(device, level);
 
 	kgsl_pwrctrl_clk(device, KGSL_PWRFLAGS_ON, KGSL_STATE_ACTIVE);
