@@ -244,8 +244,8 @@ static int kgsl_drv_full_cache_threshold_store(struct device *dev,
 	int ret;
 	unsigned int thresh = 0;
 
-	ret = kgsl_sysfs_store(buf, count, &thresh);
-	if (ret != count)
+	ret = kgsl_sysfs_store(buf, &thresh);
+	if (ret)
 		return ret;
 
 	kgsl_driver.full_cache_threshold = thresh;
@@ -398,6 +398,30 @@ static void kgsl_page_alloc_unmap_kernel(struct kgsl_memdesc *memdesc)
 	vunmap(memdesc->hostptr);
 
 	atomic_sub(memdesc->size, &kgsl_driver.stats.vmalloc);
+	memdesc->hostptr = NULL;
+done:
+	mutex_unlock(&kernel_map_global_lock);
+}
+
+/*
+ * kgsl_page_alloc_unmap_kernel() - Unmap the memory in memdesc
+ *
+ * @memdesc: The memory descriptor which contains information about the memory
+ *
+ * Unmaps the memory mapped into kernel address space
+ */
+static void kgsl_page_alloc_unmap_kernel(struct kgsl_memdesc *memdesc)
+{
+	mutex_lock(&kernel_map_global_lock);
+	if (!memdesc->hostptr) {
+		BUG_ON(memdesc->hostptr_count);
+		goto done;
+	}
+	memdesc->hostptr_count--;
+	if (memdesc->hostptr_count)
+		goto done;
+	vunmap(memdesc->hostptr);
+	kgsl_driver.stats.vmalloc -= memdesc->size;
 	memdesc->hostptr = NULL;
 done:
 	mutex_unlock(&kernel_map_global_lock);

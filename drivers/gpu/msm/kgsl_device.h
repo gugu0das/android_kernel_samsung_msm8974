@@ -789,11 +789,9 @@ static inline void kgsl_cmdbatch_put(struct kgsl_cmdbatch *cmdbatch)
 /**
  * kgsl_sysfs_store() - parse a string from a sysfs store function
  * @buf: Incoming string to parse
- * @count: Size of the incoming string
  * @ptr: Pointer to an unsigned int to store the value
  */
-static inline ssize_t kgsl_sysfs_store(const char *buf, size_t count,
-		unsigned int *ptr)
+static inline int kgsl_sysfs_store(const char *buf, unsigned int *ptr)
 {
 	unsigned int val;
 	int rc;
@@ -805,7 +803,7 @@ static inline ssize_t kgsl_sysfs_store(const char *buf, size_t count,
 	if (ptr)
 		*ptr = val;
 
-	return count;
+	return 0;
 }
 
 /**

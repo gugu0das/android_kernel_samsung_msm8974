@@ -960,7 +960,7 @@ static struct kgsl_process_private *kgsl_process_private_new(void)
 	mutex_lock(&kgsl_driver.process_mutex);
 	list_for_each_entry(private, &kgsl_driver.process_list, list) {
 		if (private->pid == task_tgid_nr(current)) {
-			if (!kref_get_unless_zero(&private->refcount))
+			if (!kgsl_process_private_get(private))
 				private = NULL;
 			goto done;
 		}
