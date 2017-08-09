@@ -2156,7 +2156,11 @@ extern int	       skb_copy_datagram_iovec(const struct sk_buff *from,
 					       int size);
 extern int	       skb_copy_and_csum_datagram_iovec(struct sk_buff *skb,
 							int hlen,
+#ifdef CONFIG_ARCH_MSM8974PRO
 							struct iovec *iov, int len);
+#else
+							struct iovec *iov);
+#endif
 extern int	       skb_copy_datagram_from_iovec(struct sk_buff *skb,
 						    int offset,
 						    const struct iovec *from,

@@ -1212,7 +1212,11 @@ try_again:
 	else {
 		err = skb_copy_and_csum_datagram_iovec(skb,
 						       sizeof(struct udphdr),
+#ifdef CONFIG_ARCH_MSM8974PRO
 						       msg->msg_iov, copied);
+#else
+						       msg->msg_iov);
+#endif
 
 		if (err == -EINVAL)
 			goto csum_copy_err;
