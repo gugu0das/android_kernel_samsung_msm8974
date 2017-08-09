@@ -713,7 +713,7 @@ EXPORT_SYMBOL(__skb_checksum_complete);
  *	@skb: skbuff
  *	@hlen: hardware length
  *	@iov: io vector
- *	@len: amount of data to copy from skb to iov
+ *	@len: amount of data to copy from skb to iov - MSM8974Pro
  *
  *	Caller _must_ check that skb will fit to this iovec.
  *
@@ -723,13 +723,19 @@ EXPORT_SYMBOL(__skb_checksum_complete);
  *			   can be modified!
  */
 int skb_copy_and_csum_datagram_iovec(struct sk_buff *skb,
+#ifdef CONFIG_ARCH_MSM8974PRO
 				     int hlen, struct iovec *iov, int len)
+#else
+				     int hlen, struct iovec *iov)
+#endif
 {
 	__wsum csum;
 	int chunk = skb->len - hlen;
 
+#ifdef CONFIG_ARCH_MSM8974PRO
 	if (chunk > len)
 		chunk = len;
+#endif
 
 	if (!chunk)
 		return 0;
