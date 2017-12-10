@@ -444,7 +444,7 @@ void jbd2_journal_commit_transaction(journal_t *journal)
 	 * frees some memory
 	 */
 	spin_lock(&journal->j_list_lock);
-	__jbd2_journal_clean_checkpoint_list(journal);
+	__jbd2_journal_clean_checkpoint_list(journal, false);
 	spin_unlock(&journal->j_list_lock);
 
 	jbd_debug(3, "JBD2: commit phase 1\n");
@@ -1026,7 +1026,7 @@ restart_loop:
 				journal->j_average_commit_time*3) / 4;
 	else
 		journal->j_average_commit_time = commit_time;
-
+	
 	write_unlock(&journal->j_state_lock);
 
 	if (journal->j_checkpoint_transactions == NULL) {
@@ -1042,26 +1042,18 @@ restart_loop:
 			commit_transaction;
 		commit_transaction->t_cpprev->t_cpnext =
 				commit_transaction;
-	}
+		}
 	spin_unlock(&journal->j_list_lock);
+
 	/* Drop all spin_locks because commit_callback may be block.
 	 * __journal_remove_checkpoint() can not destroy transaction
 	 * under us because it is not marked as T_FINISHED yet */
 	if (journal->j_commit_callback) {
 		journal->j_commit_callback(journal, commit_transaction);
-		spin_lock(&journal->j_list_lock);
-		if (commit_transaction->t_dropped) {
-			//to_free = 1;
-		} else {
-			commit_transaction->t_callbacked = 1;
-		}
-		spin_unlock(&journal->j_list_lock);
-	}
 
 	trace_jbd2_end_commit(journal, commit_transaction);
 	jbd_debug(1, "JBD2: commit %d complete, head %d\n",
 		  journal->j_commit_sequence, journal->j_tail_sequence);
-
 	write_lock(&journal->j_state_lock);
 	spin_lock(&journal->j_list_lock);
 	commit_transaction->t_state = T_FINISHED;
@@ -1073,5 +1065,7 @@ restart_loop:
 	}
 	spin_unlock(&journal->j_list_lock);
 	write_unlock(&journal->j_state_lock);
+
 	wake_up(&journal->j_wait_done_commit);
+}
 }

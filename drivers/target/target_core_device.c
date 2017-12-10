@@ -826,20 +826,20 @@ int se_dev_check_shutdown(struct se_device *dev)
 
 u32 se_dev_align_max_sectors(u32 max_sectors, u32 block_size)
 {
-	u32 tmp, aligned_max_sectors;
+	u32 aligned_max_sectors;
+	u32 alignment;
 	/*
 	 * Limit max_sectors to a PAGE_SIZE aligned value for modern
 	 * transport_allocate_data_tasks() operation.
 	 */
-	tmp = rounddown((max_sectors * block_size), PAGE_SIZE);
-	aligned_max_sectors = (tmp / block_size);
-	if (max_sectors != aligned_max_sectors) {
-		printk(KERN_INFO "Rounding down aligned max_sectors from %u"
-				" to %u\n", max_sectors, aligned_max_sectors);
-		return aligned_max_sectors;
-	}
+	alignment = max(1ul, PAGE_SIZE / block_size);
+	aligned_max_sectors = rounddown(max_sectors, alignment);
 
-	return max_sectors;
+	if (max_sectors != aligned_max_sectors)
+		pr_info("Rounding down aligned max_sectors from %u to %u\n",
+			max_sectors, aligned_max_sectors);
+
+	return aligned_max_sectors;
 }
 
 void se_dev_set_default_attribs(
@@ -1477,22 +1477,16 @@ static struct se_lun *core_dev_get_lun(struct se_portal_group *tpg, u32 unpacked
 
 struct se_lun_acl *core_dev_init_initiator_node_lun_acl(
 	struct se_portal_group *tpg,
+	struct se_node_acl *nacl,
 	u32 mapped_lun,
-	char *initiatorname,
 	int *ret)
 {
 	struct se_lun_acl *lacl;
-	struct se_node_acl *nacl;
 
-	if (strlen(initiatorname) >= TRANSPORT_IQN_LEN) {
+	if (strlen(nacl->initiatorname) >= TRANSPORT_IQN_LEN) {
 		pr_err("%s InitiatorName exceeds maximum size.\n",
 			tpg->se_tpg_tfo->get_fabric_name());
 		*ret = -EOVERFLOW;
-		return NULL;
-	}
-	nacl = core_tpg_get_initiator_node_acl(tpg, initiatorname);
-	if (!nacl) {
-		*ret = -EINVAL;
 		return NULL;
 	}
 	lacl = kzalloc(sizeof(struct se_lun_acl), GFP_KERNEL);
@@ -1505,7 +1499,8 @@ struct se_lun_acl *core_dev_init_initiator_node_lun_acl(
 	INIT_LIST_HEAD(&lacl->lacl_list);
 	lacl->mapped_lun = mapped_lun;
 	lacl->se_lun_nacl = nacl;
-	snprintf(lacl->initiatorname, TRANSPORT_IQN_LEN, "%s", initiatorname);
+	snprintf(lacl->initiatorname, TRANSPORT_IQN_LEN, "%s",
+		 nacl->initiatorname);
 
 	return lacl;
 }
@@ -1665,6 +1660,7 @@ int core_dev_setup_virtual_lun0(void)
 		ret = PTR_ERR(dev);
 		goto out;
 	}
+	dev->dev_link_magic = SE_DEV_LINK_MAGIC;
 	se_dev->se_dev_ptr = dev;
 	g_lun0_dev = dev;
 
