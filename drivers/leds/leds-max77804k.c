@@ -79,12 +79,12 @@ static u8 led_current_shift[MAX77804K_LED_MAX] = {
 	0,
 };
 
-extern struct class *camera_class; /*sys/class/camera*/
+struct class *camera_class; /*sys/class/camera*/
 struct device *flash_dev;
 static int flash_torch_en;
 
-extern int led_torch_en;
-extern int led_flash_en;
+static int led_torch_en;
+static int led_flash_en;
 
 static int max77804k_set_bits(struct i2c_client *client, const u8 reg,
 			     const u8 mask, const u8 inval)

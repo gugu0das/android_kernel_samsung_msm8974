@@ -12,7 +12,9 @@
 #include <linux/v4l2-mediabus.h>
 #include <linux/i2c.h>
 
+#ifdef CONFIG_ARCH_MSM8974PRO
 //#define BYPASS_COMPANION
+#endif
 
 #define I2C_SEQ_REG_SETTING_MAX   5
 #define I2C_SEQ_REG_DATA_MAX      20
@@ -46,12 +48,16 @@
 #define MAX_ACTUATOR_REGION 5
 #define MAX_ACTUATOR_INIT_SET 12
 #define MAX_ACTUATOR_REG_TBL_SIZE 8
+#ifdef CONFIG_ARCH_MSM8974PRO
 #define MAX_ACTUATOR_AF_TOTAL_STEPS 1024
+#endif
 
 #define MOVE_NEAR 0
 #define MOVE_FAR  1
+#ifdef CONFIG_ARCH_MSM8974PRO
 #define MSM_ACTUATOR_MOVE_SIGNED_FAR -1
 #define MSM_ACTUATOR_MOVE_SIGNED_NEAR  1
+#endif
 
 #define MAX_EEPROM_NAME 32
 
@@ -59,14 +65,110 @@
 
 #define MAX_NUMBER_OF_STEPS 47
 
+#ifdef CONFIG_ARCH_MSM8974PRO
 //#define COMPANION_STATS2_LENGTH 432
 //#define COMPANION_STATS2_LENGTH 1152
+#endif
+
+#ifndef CONFIG_ARCH_MSM8974PRO
+//************************************* Native functionalities for YUV sensor added by jai.prakash
+#define EXT_CAM_EV			1
+#define EXT_CAM_WB			2
+#define EXT_CAM_METERING	3
+#define EXT_CAM_ISO			4
+#define EXT_CAM_EFFECT		5
+#define EXT_CAM_SCENE_MODE	6
+#define EXT_CAM_SENSOR_MODE	7
+
+//Exposure Compensation
+#define CAMERA_EV_M4		0
+#define CAMERA_EV_M3		1
+#define CAMERA_EV_M2		2
+#define CAMERA_EV_M1		3
+#define CAMERA_EV_DEFAULT	4
+#define CAMERA_EV_P1		5
+#define CAMERA_EV_P2		6
+#define CAMERA_EV_P3		7
+#define CAMERA_EV_P4		8
+
+//White Balance
+#define CAMERA_WHITE_BALANCE_OFF				0
+#define CAMERA_WHITE_BALANCE_AUTO				1
+#define CAMERA_WHITE_BALANCE_INCANDESCENT		2
+#define CAMERA_WHITE_BALANCE_FLUORESCENT		3
+#define CAMERA_WHITE_BALANCE_DAYLIGHT			5
+#define CAMERA_WHITE_BALANCE_CLOUDY_DAYLIGHT	6
+
+//Metering
+#define CAMERA_AVERAGE			0
+#define CAMERA_CENTER_WEIGHT	1
+#define CAMERA_SPOT				2
+
+//ISO
+#define CAMERA_ISO_MODE_AUTO	0
+#define CAMERA_ISO_MODE_50		1
+#define CAMERA_ISO_MODE_100		2
+#define CAMERA_ISO_MODE_200		3
+#define CAMERA_ISO_MODE_400		4
+#define CAMERA_ISO_MODE_800		5
+
+//Effect
+#define CAMERA_EFFECT_OFF			0
+#define CAMERA_EFFECT_MONO			1
+#define CAMERA_EFFECT_NEGATIVE		2
+#define CAMERA_EFFECT_SOLARIZE		3
+#define CAMERA_EFFECT_SEPIA			4
+#define CAMERA_EFFECT_POSTERIZE		5
+#define CAMERA_EFFECT_WHITEBOARD	6
+#define CAMERA_EFFECT_BLACKBOARD	7
+#define CAMERA_EFFECT_AQUA			8
+#define CAMERA_EFFECT_EMBOSS		9
+#define CAMERA_EFFECT_SKETCH		10
+#define CAMERA_EFFECT_NEON			11
+#define CAMERA_EFFECT_WASHED		12
+#define CAMERA_EFFECT_VINTAGE_WARM	13
+#define CAMERA_EFFECT_VINTAGE_COLD	14
+#define CAMERA_EFFECT_POINT_COLOR_1	15
+#define CAMERA_EFFECT_POINT_COLOR_2	16
+#define CAMERA_EFFECT_POINT_COLOR_3	17
+#define CAMERA_EFFECT_POINT_COLOR_4	18
+#define CAMERA_EFFECT_CARTOONIZE	19
+#define CAMERA_EFFECT_MAX			20
+
+//scene mode
+#define CAMERA_SCENE_AUTO		0
+#define CAMERA_SCENE_LANDSCAPE		3
+#define CAMERA_SCENE_SPORT		9
+#define CAMERA_SCENE_PARTY		13
+#define CAMERA_SCENE_BEACH		7
+#define CAMERA_SCENE_SUNSET		12
+#define CAMERA_SCENE_DAWN		21	//need to check
+#define CAMERA_SCENE_FALL		17
+#define CAMERA_SCENE_CANDLE		14
+#define CAMERA_SCENE_FIRE		11
+#define CAMERA_SCENE_AGAINST_LIGHT	16
+#define CAMERA_SCENE_NIGHT		6
+
+#define CAMERA_SCENE_PORTRAIT		7
+#define CAMERA_SCENE_TEXT		19
+
+
+#define CAMERA_MODE_INIT                0
+#define CAMERA_MODE_PREVIEW             1
+#define CAMERA_MODE_CAPTURE             2
+#define CAMERA_MODE_RECORDING           3
+
+
+//**************************************
+#endif
 
 enum msm_camera_i2c_reg_addr_type {
 	MSM_CAMERA_I2C_BYTE_ADDR = 1,
 	MSM_CAMERA_I2C_WORD_ADDR,
 	MSM_CAMERA_I2C_3B_ADDR,
+#ifndef CONFIG_ARCH_MSM8974PRO
 	MSM_CAMERA_I2C_ADDR_TYPE_MAX,
+#endif
 };
 
 enum msm_camera_i2c_data_type {
@@ -78,7 +180,9 @@ enum msm_camera_i2c_data_type {
 	MSM_CAMERA_I2C_UNSET_WORD_MASK,
 	MSM_CAMERA_I2C_SET_BYTE_WRITE_MASK_DATA,
 	MSM_CAMERA_I2C_BURST_DATA,
+#ifndef CONFIG_ARCH_MSM8974PRO
 	MSM_CAMERA_I2C_DATA_TYPE_MAX,
+#endif
 };
 
 enum msm_sensor_power_seq_type_t {
@@ -100,17 +204,29 @@ enum msm_sensor_clk_type_t {
 enum msm_sensor_power_seq_gpio_t {
 	SENSOR_GPIO_RESET,
 	SENSOR_GPIO_STANDBY,
+#ifdef CONFIG_ARCH_MSM8974PRO
 	SENSOR_GPIO_EXT_VANA_POWER,
 	SENSOR_GPIO_EXT_VIO_POWER,
 	SENSOR_GPIO_COMP,
 	SENSOR_GPIO_COMPRSTN,
 	SENSOR_GPIO_TORCH_EN,
 	SENSOR_GPIO_FLASH_EN,
+#endif
 	SENSOR_GPIO_VT_RESET,
+#ifdef CONFIG_ARCH_MSM8974PRO
 	SENSOR_GPIO_VT_VANA,
+#endif
 	SENSOR_GPIO_VT_STANDBY,
+#ifdef CONFIG_ARCH_MSM8974PRO
 	SENSOR_GPIO_VT_VIO,
 	SENSOR_GPIO_VT_VDIG,
+#endif
+#ifndef CONFIG_ARCH_MSM8974PRO
+	SENSOR_GPIO_EXT_VANA_POWER,
+	SENSOR_GPIO_EXT_VIO_POWER,
+	SENSOR_GPIO_EXT_VCORE_POWER,
+	SENSOR_GPIO_EXT_CAMIO_EN,
+#endif
 	SENSOR_GPIO_MAX,
 };
 
@@ -119,8 +235,10 @@ enum msm_camera_vreg_name_t {
 	CAM_VIO,
 	CAM_VAF,
 	CAM_VANA,
+#ifdef CONFIG_ARCH_MSM8974PRO
 	CAM_COMP_MIPI_1P0,
 	CAM_COMP_1P8,
+#endif
 	CAM_VREG_MAX,
 };
 
@@ -153,9 +271,13 @@ enum sensor_sub_module_t {
 	SUB_MODULE_CSIPHY_3D,
 	SUB_MODULE_CSID,
 	SUB_MODULE_CSID_3D,
+#ifdef CONFIG_ARCH_MSM8974PRO
 	SUB_MODULE_COMPANION,
+#endif
 	SUB_MODULE_MAX,
 };
+
+#ifdef CONFIG_ARCH_MSM8974PRO
 enum companion_cfg_type_t {
 	COMPANION_CMD_INIT,
 	COMPANION_CMD_SET_CAL_TBL,
@@ -179,6 +301,7 @@ enum companion_cfg_type_t {
 	COMPANION_CMD_DUMP_REGISTER,
 	COMPANION_CMD_I2C_READ,
 };
+#endif
 
 enum csid_cfg_type_t {
 	CSID_INIT,
@@ -241,7 +364,9 @@ struct msm_sensor_info_t {
 	char     sensor_name[MAX_SENSOR_NAME];
 	int32_t  session_id;
 	int32_t  subdev_id[SUB_MODULE_MAX];
+#ifdef CONFIG_ARCH_MSM8974PRO
 	int32_t  subdev_intf[SUB_MODULE_MAX];
+#endif
 	uint8_t  is_mount_angle_valid;
 	uint32_t sensor_mount_angle;
 };
@@ -251,6 +376,9 @@ struct msm_camera_sensor_slave_info {
 	enum msm_sensor_camera_id_t camera_id;
 	uint16_t slave_addr;
 	enum msm_camera_i2c_reg_addr_type addr_type;
+#ifndef CONFIG_ARCH_MSM8974PRO
+	enum msm_camera_i2c_data_type data_type;
+#endif
 	struct msm_sensor_id_info_t sensor_id_info;
 	struct msm_sensor_power_setting_array power_setting_array;
 	uint8_t is_probe_succeed;
@@ -261,8 +389,10 @@ struct msm_camera_sensor_slave_info {
 struct msm_camera_i2c_reg_array {
 	uint16_t 	reg_addr;
 	uint16_t 	reg_data;
+#ifdef CONFIG_ARCH_MSM8974PRO
 #ifndef BYPASS_COMPANION
 	uint8_t		data_type;
+#endif
 #endif
 	uint32_t 	delay;
 };
@@ -388,6 +518,7 @@ struct csiphy_cfg_data {
 	} cfg;
 };
 
+#ifdef CONFIG_ARCH_MSM8974PRO
 struct companion_read_cal_data {
 	uint8_t *cal_data;
 	uint32_t size;
@@ -422,6 +553,7 @@ struct companion_cfg_data {
 	} cfg;
 	uint16_t isDump;
 };
+#endif
 
 enum eeprom_cfg_type_t {
 	CFG_EEPROM_GET_INFO,
@@ -434,7 +566,9 @@ enum eeprom_cfg_type_t {
 	CFG_EEPROM_ERASE,
 	CFG_EEPROM_POWER_ON,
 	CFG_EEPROM_POWER_OFF,
+#ifdef CONFIG_ARCH_MSM8974PRO
 	CFG_EEPROM_READ_DATA_FROM_HW,
+#endif
 };
 struct eeprom_get_t {
 	uint32_t num_bytes;
@@ -462,9 +596,17 @@ struct eeprom_erase_t {
 
 struct msm_eeprom_cfg_data {
 	enum eeprom_cfg_type_t cfgtype;
+#ifdef CONFIG_ARCH_MSM8974PRO
 	uint16_t is_supported;
+#else
+	uint8_t is_supported;
+#endif
 	union {
+#ifdef CONFIG_ARCH_MSM8974PRO
 		char eeprom_name[MAX_EEPROM_NAME];
+#else
+		char eeprom_name[MAX_SENSOR_NAME];
+#endif
 		struct eeprom_get_t get_data;
 		struct eeprom_read_t read_data;
 		struct eeprom_write_t write_data;
@@ -486,6 +628,9 @@ enum msm_sensor_cfg_type_t {
 	CFG_SET_STOP_STREAM,
 	CFG_SET_START_STREAM,
 	CFG_SET_GPIO_STATE,
+#ifndef CONFIG_ARCH_MSM8974PRO
+	CFG_SET_SENSOR_OTP_CAL, // Randy 10.08
+#endif
 };
 
 enum msm_actuator_cfg_type_t {
@@ -648,6 +793,16 @@ struct sensor_init_cfg_data {
 	} cfg;
 };
 
+#ifndef CONFIG_ARCH_MSM8974PRO
+struct ioctl_native_cmd {
+        unsigned short mode;
+        unsigned short address;
+        unsigned short value_1;
+        unsigned short value_2;
+        unsigned short value_3;
+};
+#endif
+
 #define VIDIOC_MSM_SENSOR_CFG \
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 1, struct sensorb_cfg_data)
 
@@ -675,8 +830,13 @@ struct sensor_init_cfg_data {
 #define VIDIOC_MSM_SENSOR_INIT_CFG \
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 9, struct sensor_init_cfg_data)
 
+#ifdef CONFIG_ARCH_MSM8974PRO
 #define VIDIOC_MSM_COMPANION_IO_CFG \
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 10, struct companion_cfg_data)
+#else
+#define VIDIOC_MSM_SENSOR_NATIVE_CMD \
+	_IOWR('V', BASE_VIDIOC_PRIVATE + 10, struct ioctl_native_cmd)
+#endif
 
 #define MSM_V4L2_PIX_FMT_META v4l2_fourcc('M', 'E', 'T', 'A') /* META */
 
