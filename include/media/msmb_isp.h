@@ -14,7 +14,9 @@
 #define ISP_META_CHANNEL_BIT  0x80000
 #define ISP_STATS_STREAM_BIT  0x80000000
 
+#ifdef CONFIG_ARCH_MSM8974PRO
 #define MSM_VFE_REG_CFG_FRAME_ID_NOT_MATCH_ERROR	0xCACFC
+#endif
 
 enum ISP_START_PIXEL_PATTERN {
 	ISP_BAYER_RGRGRG,
@@ -65,6 +67,7 @@ enum msm_vfe_frame_skip_pattern {
 	EVERY_6FRAME,
 	EVERY_7FRAME,
 	EVERY_8FRAME,
+#ifdef CONFIG_ARCH_MSM8974PRO
 	EVERY_9FRAME,
 	EVERY_10FRAME,
 	EVERY_11FRAME,
@@ -72,6 +75,7 @@ enum msm_vfe_frame_skip_pattern {
 	EVERY_13FRAME,
 	EVERY_14FRAME,
 	EVERY_15FRAME,
+#endif
 	EVERY_16FRAME,
 	EVERY_32FRAME,
 	SKIP_ALL,
@@ -165,11 +169,15 @@ struct msm_vfe_axi_stream_cfg_cmd {
 	uint8_t num_streams;
 	uint32_t stream_handle[MAX_NUM_STREAM];
 	enum msm_vfe_axi_stream_cmd cmd;
+#ifdef CONFIG_ARCH_MSM8974PRO
 	int32_t recording_hint;
+#endif
 };
 
 enum msm_vfe_axi_stream_update_type {
+#ifdef CONFIG_ARCH_MSM8974PRO
     AXI_STREAM_UPDATE_INVALID,
+#endif
 	ENABLE_STREAM_BUF_DIVERT,
 	DISABLE_STREAM_BUF_DIVERT,
 	UPDATE_STREAM_FRAMEDROP_PATTERN,
@@ -183,6 +191,7 @@ struct msm_vfe_axi_stream_cfg_update_info {
 	struct msm_vfe_axi_plane_cfg plane_cfg[MAX_PLANES_PER_STREAM];
 };
 
+#ifdef CONFIG_ARCH_MSM8974PRO
 struct msm_vfe_axi_halt_cmd {
   uint32_t stop_camif; //Boolean whether stop camif is to be done
   uint32_t overflow_detected;
@@ -196,6 +205,7 @@ struct msm_vfe_axi_reset_cmd {
 struct msm_vfe_axi_restart_cmd {
   uint32_t enable_camif; //Boolean whether stop camif is to be done
 };
+#endif
 
 struct msm_vfe_axi_stream_update_cmd {
 	uint32_t num_streams;
@@ -266,7 +276,9 @@ enum msm_vfe_reg_cfg_type {
 struct msm_vfe_cfg_cmd2 {
 	uint16_t num_cfg;
 	uint16_t cmd_len;
+#ifdef CONFIG_ARCH_MSM8974PRO
 	uint32_t frame_id;
+#endif
 	void __user *cfg_data;
 	void __user *cfg_cmd;
 };
@@ -380,9 +392,11 @@ struct msm_isp_stream_ack {
 	uint32_t handle;
 };
 
+#ifdef CONFIG_ARCH_MSM8974PRO
 struct msm_isp_error_info {
   uint32_t error_mask; /* 1 << msm_isp_event_idx */
 };
+#endif
 
 struct msm_isp_event_data {
 	/*Wall clock except for buffer divert events
@@ -391,18 +405,24 @@ struct msm_isp_event_data {
 	struct timeval timestamp;
 	/* if pix is a src frame_id is from camif */
 	uint32_t frame_id;
+#ifdef CONFIG_ARCH_MSM8974PRO
 	enum msm_vfe_input_src input_src;
+#endif
 	union {
 		/* START_ACK, STOP_ACK */
 		struct msm_isp_stream_ack stream_ack;
 		/* REG_UPDATE_TRIGGER, bus over flow */
-		
+#ifndef CONFIG_ARCH_MSM8974PRO
+		enum msm_vfe_input_src input_src;
+#endif
 		/* stats notify */
 		struct msm_isp_stats_event stats;
 		/* IRQ_VIOLATION, STATS_OVER_FLOW, WM_OVER_FLOW */
 		uint32_t irq_status_mask;
 		struct msm_isp_buf_event buf_done;
+#ifdef CONFIG_ARCH_MSM8974PRO
     struct msm_isp_error_info error_info;
+#endif
 	} u; /* union can have max 52 bytes */
 };
 
@@ -421,8 +441,10 @@ struct msm_isp_event_data {
 #define V4L2_PIX_FMT_META v4l2_fourcc('M', 'E', 'T', 'A')
 #define V4L2_PIX_FMT_NV14 v4l2_fourcc('N', 'V', '1', '4')
 #define V4L2_PIX_FMT_NV41 v4l2_fourcc('N', 'V', '4', '1')
+#ifdef CONFIG_ARCH_MSM8974PRO
 #define V4L2_PIX_FMT_NV46 v4l2_fourcc('N', 'V', '4', '6')
 #define V4L2_PIX_FMT_NV64 v4l2_fourcc('N', 'V', '6', '4')
+#endif
 
 #define VIDIOC_MSM_VFE_REG_CFG \
 	_IOWR('V', BASE_VIDIOC_PRIVATE, struct msm_vfe_cfg_cmd2)
@@ -469,6 +491,7 @@ struct msm_isp_event_data {
 #define VIDIOC_MSM_ISP_UPDATE_STREAM \
 	_IOWR('V', BASE_VIDIOC_PRIVATE+13, struct msm_vfe_axi_stream_update_cmd)
 
+#ifdef CONFIG_ARCH_MSM8974PRO
 #define VIDIOC_MSM_ISP_AXI_HALT \
 	_IOWR('V', BASE_VIDIOC_PRIVATE+14, struct msm_vfe_axi_halt_cmd)
 
@@ -477,5 +500,6 @@ struct msm_isp_event_data {
 
 #define VIDIOC_MSM_ISP_AXI_RESTART \
 	_IOWR('V', BASE_VIDIOC_PRIVATE+16, struct msm_vfe_axi_restart_cmd)
+#endif
 
 #endif /* __MSMB_ISP__ */
