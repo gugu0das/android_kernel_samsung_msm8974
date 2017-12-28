@@ -913,6 +913,8 @@ static void mdss_mdp_video_pingpong_done(void *arg)
 	mdss_mdp_irq_disable_nosync(MDSS_MDP_IRQ_PING_PONG_COMP, ctl->num);
 	complete_all(&ctx->pp_comp);
 }
+
+#ifdef CONFIG_ARCH_MSM8974PRO
 static int mdss_mdp_video_wait4pingpong(struct mdss_mdp_ctl *ctl, void *arg)
 {
   	struct mdss_mdp_video_ctx *ctx;
@@ -931,6 +933,7 @@ static int mdss_mdp_video_wait4pingpong(struct mdss_mdp_ctl *ctl, void *arg)
 
 	return rc;
 }
+#endif
 
 int mdss_mdp_video_start(struct mdss_mdp_ctl *ctl)
 {
@@ -1027,7 +1030,9 @@ int mdss_mdp_video_start(struct mdss_mdp_ctl *ctl)
 	ctl->add_vsync_handler = mdss_mdp_video_add_vsync_handler;
 	ctl->remove_vsync_handler = mdss_mdp_video_remove_vsync_handler;
 	ctl->config_fps_fnc = mdss_mdp_video_config_fps;
+#ifdef CONFIG_ARCH_MSM8974PRO
 	ctl->wait_video_pingpong = mdss_mdp_video_wait4pingpong;
+#endif
 
 	return 0;
 }
