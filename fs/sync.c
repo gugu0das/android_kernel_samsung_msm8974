@@ -18,12 +18,6 @@
 #include "internal.h"
 
 bool fsync_enabled = true;
-module_param(fsync_enabled, bool, 0644);
-
-void set_fsync(bool enable)
-	{
-	        fsync_enabled = enable;
-	}
 
 #ifdef CONFIG_POWERSUSPEND
 #include <linux/powersuspend.h>
