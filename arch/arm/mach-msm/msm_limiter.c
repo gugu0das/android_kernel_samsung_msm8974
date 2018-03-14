@@ -14,17 +14,16 @@
 #include <linux/cpu.h>
 #include <linux/cpufreq.h>
 #include <linux/state_notifier.h>
-
 #include <soc/qcom/limiter.h>
 
 /* Try not to change below values. */
 #define MSM_LIMITER			"msm_limiter"
 #define MSM_LIMITER_MAJOR		5
-#define MSM_LIMITER_MINOR		3
+#define MSM_LIMITER_MINOR		4
 
 /* Recommended to set below values from userspace. */
-#define FREQ_CONTROL			0
-#define DEBUG_MODE			0
+#define FREQ_CONTROL			1
+#define DEBUG_MODE			1
 #define MPD_ENABLED			0
 
 /*
@@ -34,26 +33,16 @@
  * will reflect new max freq. Changing suspend_min_freq will reflect
  * new min freq. All frequency changes do require freq_control enabled.
  * Changing scaling_governor will reflect new governor.
- * Passing single value to above parameters will apply that value to 
+ * Passing single value to above parameters will apply that value to
  * all the CPUs present. Otherwise, you can pass value in token:value
  * pair to apply value individually.
+ * TODO: Get max-min freq dynamically if SOC is not
+ * defined.
  */
 
-#if defined(CONFIG_ARCH_MSM8916)
-#define DEFAULT_SUSP_MAX_FREQUENCY	998400
-#elif defined(CONFIG_ARCH_APQ8084)
-#define DEFAULT_SUSP_MAX_FREQUENCY	1728000
-#endif
-#if defined(CONFIG_ARCH_MSM8916)
-#define DEFAULT_RESUME_MAX_FREQUENCY	1209600
-#elif defined(CONFIG_ARCH_APQ8084)
-#define DEFAULT_RESUME_MAX_FREQUENCY	2649600
-#endif
-#if defined(CONFIG_ARCH_MSM8916)
-#define DEFAULT_MIN_FREQUENCY		200000
-#elif defined(CONFIG_ARCH_APQ8084)
+#define DEFAULT_SUSP_MAX_FREQUENCY	384000
+#define DEFAULT_RESUME_MAX_FREQUENCY	600000
 #define DEFAULT_MIN_FREQUENCY		300000
-#endif
 
 static struct notifier_block notif;
 static unsigned int freq_control = FREQ_CONTROL;
@@ -88,7 +77,7 @@ static void update_cpu_max_freq(unsigned int cpu)
 		return;
 
 	mutex_lock(&per_cpu(limit, cpu).msm_limiter_mutex);
-	dprintk("%s: Setting Max Freq for CPU%u: %u Hz\n",
+	dprintk("%s: Setting max frequency for CPU%u: %u Hz\n",
 			MSM_LIMITER, cpu, max_freq);
 	cpufreq_set_freq(max_freq, 0, cpu);
 	mutex_unlock(&per_cpu(limit, cpu).msm_limiter_mutex);
@@ -105,7 +94,7 @@ static void update_cpu_min_freq(unsigned int cpu)
 		return;
 
 	mutex_lock(&per_cpu(limit, cpu).msm_limiter_mutex);
-	dprintk("%s: Setting Min Freq for CPU%u: %u Hz\n",
+	dprintk("%s: Setting min frequency for CPU%u: %u Hz\n",
 			MSM_LIMITER, cpu, min_freq);
 	cpufreq_set_freq(0, min_freq, cpu);
 	mutex_unlock(&per_cpu(limit, cpu).msm_limiter_mutex);
@@ -148,7 +137,7 @@ static int msm_limiter_start(void)
 
 	notif.notifier_call = state_notifier_callback;
 	if (state_register_client(&notif)) {
-		pr_err("%s: Failed to register State notifier callback\n",
+		pr_err("%s: Failed to register state notifier callback\n",
 			MSM_LIMITER);
 		goto err_out;
 	}
@@ -171,7 +160,7 @@ static void msm_limiter_stop(void)
 {
 	unsigned int cpu = 0;
 
-	for_each_possible_cpu(cpu)	
+	for_each_possible_cpu(cpu)
 		mutex_destroy(&per_cpu(limit, cpu).msm_limiter_mutex);
 
 	state_unregister_client(&notif);
@@ -635,8 +624,8 @@ static int msm_limiter_init(void)
 	}
 
 	/* One-time init of required values. */
-	for_each_possible_cpu(cpu) {		
-#if defined(CONFIG_ARCH_MSM8916) || defined(CONFIG_ARCH_APQ8084)
+	for_each_possible_cpu(cpu) {
+#if defined(CONFIG_ARCH_MSM8974)
 		per_cpu(limit, cpu).suspend_max_freq = DEFAULT_SUSP_MAX_FREQUENCY;
 		per_cpu(limit, cpu).resume_max_freq = DEFAULT_RESUME_MAX_FREQUENCY;
 		per_cpu(limit, cpu).suspend_min_freq = DEFAULT_MIN_FREQUENCY;
