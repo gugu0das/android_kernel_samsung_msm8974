@@ -1270,7 +1270,8 @@ static void __overlay_kickoff_requeue(struct msm_fb_data_type *mfd)
 }
 
 #if defined(CONFIG_MDNIE_LITE_TUNING)
-#if defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_FULL_HD_PT_PANEL)
+#if defined(CONFIG_FB_MSM_MIPI_SAMSUNG_OCTA_CMD_FULL_HD_PT_PANEL) \
+			|| defined(CONFIG_FB_MSM_MIPI_SAMSUNG_YOUM_CMD_FULL_HD_PT_PANEL)
 static bool mdss_first_init = true;
 #endif
 #endif
