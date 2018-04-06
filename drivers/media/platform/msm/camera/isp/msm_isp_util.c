@@ -569,7 +569,7 @@ static int msm_isp_send_hw_cmd(struct vfe_device *vfe_dev,
 		lo_tbl_ptr = cfg_data +
 			reg_cfg_cmd->u.dmi_info.lo_tbl_offset/4;
 
-#ifdef CONFIG_MACH_JACTIVESKT
+#if defined(CONFIG_MACH_JACTIVESKT) || defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_F_PROJECT) || defined(CONFIG_SEC_KS01_PROJECT)
 		if (reg_cfg_cmd->cmd_type == VFE_WRITE_DMI_64BIT) {
 			reg_cfg_cmd->u.dmi_info.len = reg_cfg_cmd->u.dmi_info.len/2;
 		}

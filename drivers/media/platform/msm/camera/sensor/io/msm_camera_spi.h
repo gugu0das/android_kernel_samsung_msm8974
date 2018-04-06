@@ -44,7 +44,7 @@ struct msm_camera_spi_inst_tbl {
 struct msm_camera_spi_client {
 	struct spi_device *spi_master;
 	struct msm_camera_spi_inst_tbl cmd_tbl;
-#ifdef CONFIG_MACH_JACTIVESKT
+#if defined(CONFIG_MACH_JACTIVESKT) || defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_F_PROJECT) || defined(CONFIG_SEC_KS01_PROJECT)
 	uint8_t device_id0;
 	uint8_t device_id1;
 	uint8_t mfr_id0;

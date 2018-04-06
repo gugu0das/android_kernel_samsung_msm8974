@@ -91,7 +91,7 @@ static int msm_csiphy_lane_config(struct csiphy_device *csiphy_dev,
 		msm_camera_io_w(0x10, csiphybase + MIPI_CSIPHY_LNCK_CFG2_ADDR);
 		msm_camera_io_w(csiphy_params->settle_cnt,
 			 csiphybase + MIPI_CSIPHY_LNCK_CFG3_ADDR);
-#ifdef CONFIG_MACH_JACTIVESKT
+#if defined(CONFIG_MACH_JACTIVESKT) || defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_F_PROJECT) || defined(CONFIG_SEC_KS01_PROJECT)
 		msm_camera_io_w(0xff, csiphybase + MIPI_CSIPHY_LNCK_CFG4_ADDR);
 #endif
 		msm_camera_io_w(0x24,
@@ -105,7 +105,7 @@ static int msm_csiphy_lane_config(struct csiphy_device *csiphy_dev,
 		msm_camera_io_w(csiphy_params->combo_mode <<
 			MIPI_CSIPHY_MODE_CONFIG_SHIFT,
 			csiphybase + MIPI_CSIPHY_GLBL_RESET_ADDR);
-#ifdef CONFIG_MACH_JACTIVESKT
+#if defined(CONFIG_MACH_JACTIVESKT) || defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_F_PROJECT) || defined(CONFIG_SEC_KS01_PROJECT)
 		msm_camera_io_w(0xff, csiphybase + MIPI_CSIPHY_LNCK_CFG4_ADDR);
 #endif
 	}
@@ -126,7 +126,7 @@ static int msm_csiphy_lane_config(struct csiphy_device *csiphy_dev,
 		msm_camera_io_w(MIPI_CSIPHY_INTERRUPT_MASK_VAL, csiphybase +
 			MIPI_CSIPHY_INTERRUPT_CLEAR_ADDR + 0x4*j);
 
-#ifdef CONFIG_MACH_JACTIVESKT
+#if defined(CONFIG_MACH_JACTIVESKT) || defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_F_PROJECT) || defined(CONFIG_SEC_KS01_PROJECT)
 		if (csiphy_dev->hw_version == CSIPHY_VERSION_V3) 
 		msm_camera_io_w(0xff, csiphybase + MIPI_CSIPHY_LNn_CFG4_ADDR+0x40*j); 
 #endif

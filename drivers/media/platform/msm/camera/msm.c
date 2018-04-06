@@ -29,7 +29,7 @@
 #include "msm.h"
 #include "msm_vb2.h"
 #include "msm_sd.h"
-#ifdef CONFIG_MACH_JACTIVESKT
+#if defined(CONFIG_MACH_JACTIVESKT) || defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_F_PROJECT)
 #include <media/msmb_generic_buf_mgr.h>
 #endif
 
@@ -527,7 +527,7 @@ static void msm_remove_session_cmd_ack_q(struct msm_session *session)
 int msm_destroy_session(unsigned int session_id)
 {
 	struct msm_session *session;
-#ifdef CONFIG_MACH_JACTIVESKT
+#if defined(CONFIG_MACH_JACTIVESKT) || defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_F_PROJECT)
 	struct v4l2_subdev *buf_mgr_subdev;
 #endif
 
@@ -544,7 +544,7 @@ int msm_destroy_session(unsigned int session_id)
 	msm_delete_entry(msm_session_q, struct msm_session,
 		list, session);
 
-#ifdef CONFIG_MACH_JACTIVESKT
+#if defined(CONFIG_MACH_JACTIVESKT) || defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_F_PROJECT)
 	//Qualcomm patch
 	buf_mgr_subdev = msm_buf_mngr_get_subdev();
 	if (buf_mgr_subdev) {
