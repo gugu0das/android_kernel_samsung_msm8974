@@ -337,7 +337,7 @@ static void msm_vfe40_process_halt_irq(struct vfe_device *vfe_dev,
 {
 	if (irq_status1 & (1 << 8)){
 		complete(&vfe_dev->halt_complete);
-#ifdef CONFIG_MACH_JACTIVESKT
+#if defined(CONFIG_MACH_JACTIVESKT) || defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_F_PROJECT)
 		msm_camera_io_w(0x0, vfe_dev->vfe_base + 0x2C0);
 #endif
 	}

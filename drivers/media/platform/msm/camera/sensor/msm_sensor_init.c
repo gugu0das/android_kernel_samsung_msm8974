@@ -145,7 +145,7 @@ static ssize_t back_camera_firmware_store(struct device *dev,
 	return size;
 }
 
-#ifdef CONFIG_MACH_JACTIVESKT
+#if defined(CONFIG_MACH_JACTIVESKT) || defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_F_PROJECT) || defined(CONFIG_SEC_KS01_PROJECT)
 char cam_fw_full_ver[40] = "NULL NULL NULL\n";//multi module
 static ssize_t back_camera_firmware_full_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
@@ -183,7 +183,7 @@ static ssize_t back_camera_firmware_load_store(struct device *dev,
 static ssize_t front_camera_firmware_show(struct device *dev,
 			struct device_attribute *attr, char *buf)
 {
-#ifdef CONFIG_MACH_JACTIVESKT
+#if defined(CONFIG_MACH_JACTIVESKT) || defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_F_PROJECT) || defined(CONFIG_SEC_KS01_PROJECT)
 	char cam_fw[] = "S5K6B2YX N\n";
 #else
 	char cam_fw[] = "S5K6B2YX S5K6B2YX\n";
@@ -197,7 +197,7 @@ static DEVICE_ATTR(rear_camfw, S_IRUGO|S_IWUSR|S_IWGRP,
     back_camera_firmware_show, back_camera_firmware_store);
 static DEVICE_ATTR(rear_camfw_load, S_IRUGO|S_IWUSR|S_IWGRP,
     back_camera_firmware_load_show, back_camera_firmware_load_store);
-#ifdef CONFIG_MACH_JACTIVESKT
+#if defined(CONFIG_MACH_JACTIVESKT) || defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_F_PROJECT) || defined(CONFIG_SEC_KS01_PROJECT)
 static DEVICE_ATTR(rear_camfw_full, S_IRUGO | S_IWUSR | S_IWGRP,
     back_camera_firmware_full_show, back_camera_firmware_full_store);
 #endif
@@ -256,7 +256,7 @@ static int __init msm_sensor_init_module(void)
 		printk("Failed to create device file!(%s)!\n",
 			dev_attr_rear_camfw_load.attr.name);
 	}
-#ifdef CONFIG_MACH_JACTIVESKT
+#if defined(CONFIG_MACH_JACTIVESKT) || defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_F_PROJECT) || defined(CONFIG_SEC_KS01_PROJECT)
 	if (device_create_file(cam_dev_back, &dev_attr_rear_camfw_full) < 0) {
 		printk("Failed to create device file!(%s)!\n",
 			dev_attr_rear_camfw_full.attr.name);

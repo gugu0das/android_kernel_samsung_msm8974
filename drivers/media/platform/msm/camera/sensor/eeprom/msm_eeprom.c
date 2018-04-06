@@ -246,7 +246,7 @@ static int msm_eeprom_match_id(struct msm_eeprom_ctrl_t *e_ctrl)
 	rc = msm_camera_spi_query_id(client, 0, &id[0], 2);
 	if (rc < 0)
 		return rc;
-#ifdef CONFIG_MACH_JACTIVESKT
+#if defined(CONFIG_MACH_JACTIVESKT) || defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_F_PROJECT) || defined(CONFIG_SEC_KS01_PROJECT)
 	pr_info("%s: read 0x%x 0x%x, check 0:0x%x 0x%x 1:0x%x 0x%x\n", __func__,
 	id[0], id[1], client->spi_client->mfr_id0, client->spi_client->device_id0,
 	client->spi_client->mfr_id1, client->spi_client->device_id1);
@@ -857,7 +857,7 @@ static int msm_eeprom_spi_parse_of(struct msm_camera_spi_client *spic)
 	}
 	spic->erase_size = tmp[0];
 
-#ifdef CONFIG_MACH_JACTIVESKT
+#if defined(CONFIG_MACH_JACTIVESKT) || defined(CONFIG_SEC_H_PROJECT) || defined(CONFIG_SEC_F_PROJECT) || defined(CONFIG_SEC_KS01_PROJECT)
 	rc = of_property_read_u32_array(of, "qcom,eeprom-id0", tmp, 2);
 	if (rc < 0) {
 		pr_err("%s: Failed to get eeprom id 0\n", __func__);
