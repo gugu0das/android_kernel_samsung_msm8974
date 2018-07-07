@@ -29,7 +29,7 @@ static DEFINE_MUTEX(cpufreq_limit_lock);
 static LIST_HEAD(cpufreq_limit_requests);
 
 #if defined(CONFIG_ARCH_MSM8974PRO)
-static int suspend_boost = 1190400;
+static int suspend_boost = 1958400;
 module_param(suspend_boost, uint, 0644);
 #endif
 
