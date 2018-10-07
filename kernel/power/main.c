@@ -17,7 +17,9 @@
 #include <linux/seq_file.h>
 #include <linux/hrtimer.h>
 
+#ifndef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
 #define CONFIG_SUSPEND_HELPER //etinum.test
+#endif
 //#define SUSPEND_WAKEUP_BOOST
 
 #ifdef SUSPEND_WAKEUP_BOOST

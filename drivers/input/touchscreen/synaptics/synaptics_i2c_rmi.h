@@ -19,15 +19,19 @@
 #ifndef _SYNAPTICS_RMI4_H_
 #define _SYNAPTICS_RMI4_H_
 
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+#include <linux/input/doubletap2wake.h>
+#else
 #define DISABLE_IRQ_WHEN_ENTER_DEEPSLEEP
+#endif
 
 #define SYNAPTICS_RMI4_DRIVER_VERSION "DS5 1.0"
 #include <linux/device.h>
 #include <linux/i2c/synaptics_rmi.h>
 #include <linux/regulator/consumer.h>
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-#include <linux/earlysuspend.h>
+#ifdef CONFIG_POWERSUSPEND
+#include <linux/powersuspend.h>
 #endif
 
 #if defined(CONFIG_INPUT_BOOSTER)
@@ -46,13 +50,18 @@
 
 /* feature define */
 #define TSP_BOOSTER	/* DVFS feature : TOUCH BOOSTER */
-#define USE_OPEN_CLOSE	/* Use when CONFIG_HAS_EARLYSUSPEND is disabled */
+#undef	USE_OPEN_CLOSE
 #define REPORT_2D_W
 #define REDUCE_I2C_DATA_LENGTH
 #define USE_SENSOR_SLEEP
 
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+#define	TSP_IRQ_TYPE_LEVEL	IRQF_TRIGGER_LOW | IRQF_ONESHOT | IRQF_NO_SUSPEND | IRQF_FORCE_RESUME
+#define	TSP_IRQ_TYPE_EDGE	IRQF_TRIGGER_FALLING | IRQF_NO_SUSPEND | IRQF_FORCE_RESUME
+#else
 #define	TSP_IRQ_TYPE_LEVEL	IRQF_TRIGGER_LOW | IRQF_ONESHOT
 #define	TSP_IRQ_TYPE_EDGE	IRQF_TRIGGER_FALLING
+#endif
 
 #if defined(CONFIG_SEC_MONDRIAN_PROJECT)
 #define TOUCHKEY_ENABLE
@@ -1126,8 +1135,8 @@ struct synaptics_rmi4_data {
 	struct mutex rmi4_reflash_mutex;
 	struct timer_list f51_finger_timer;
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	struct early_suspend early_suspend;
+#ifdef CONFIG_POWERSUSPEND
+	struct power_suspend power_suspend;
 #endif
 	const char *firmware_name;
 

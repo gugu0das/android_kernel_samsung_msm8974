@@ -22,8 +22,8 @@
 #include <linux/input/mt.h>
 #include <linux/gpio.h>
 #include <linux/regulator/consumer.h>
-#ifdef CONFIG_HAS_EARLYSUSPEND
-#include <linux/earlysuspend.h>
+#ifdef CONFIG_POWERSUSPEND
+#include <linux/powersuspend.h>
 #endif
 #include "synaptics_i2c_rmi.h"
 
@@ -32,7 +32,13 @@
 #include <linux/regulator/consumer.h>
 #include <linux/qpnp/pin.h>
 
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+#include <linux/input/doubletap2wake.h>
+extern int dt2w_switch;
+#endif
+
 #define DRIVER_NAME "synaptics_rmi4_i2c"
+#undef USE_SENSOR_SLEEP
 
 #define SYNAPTICS_PM_GPIO_STATE_WAKE	0
 #define SYNAPTICS_PM_GPIO_STATE_SLEEP	1
@@ -79,16 +85,16 @@ static int synaptics_rmi4_start_device(struct synaptics_rmi4_data *rmi4_data);
 static int synaptics_rmi4_init_exp_fn(struct synaptics_rmi4_data *rmi4_data);
 static void synaptics_rmi4_remove_exp_fn(struct synaptics_rmi4_data *rmi4_data);
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
+#ifdef CONFIG_POWERSUSPEND
 static ssize_t synaptics_rmi4_full_pm_cycle_show(struct device *dev,
 		struct device_attribute *attr, char *buf);
 
 static ssize_t synaptics_rmi4_full_pm_cycle_store(struct device *dev,
 		struct device_attribute *attr, const char *buf, size_t count);
 
-static void synaptics_rmi4_early_suspend(struct early_suspend *h);
+static void synaptics_rmi4_early_suspend(struct power_suspend *h);
 
-static void synaptics_rmi4_late_resume(struct early_suspend *h);
+static void synaptics_rmi4_late_resume(struct power_suspend *h);
 
 #else
 
@@ -175,7 +181,7 @@ static struct device_attribute attrs[] = {
 	__ATTR(global, (S_IRUGO | S_IWUSR | S_IWGRP),
 			synaptics_rmi4_global_show,
 			synaptics_rmi4_global_store),
-#ifdef CONFIG_HAS_EARLYSUSPEND
+#ifdef CONFIG_POWERSUSPEND
 	__ATTR(full_pm_cycle, (S_IRUGO | S_IWUSR | S_IWGRP),
 			synaptics_rmi4_full_pm_cycle_show,
 			synaptics_rmi4_full_pm_cycle_store),
@@ -436,7 +442,7 @@ static void synaptics_request_gpio(struct synaptics_rmi4_data *rmi4_data)
 	}
 }
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
+#ifdef CONFIG_POWERSUSPEND
 static ssize_t synaptics_rmi4_full_pm_cycle_show(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -660,7 +666,7 @@ int synaptics_rmi4_glove_mode_enables(struct synaptics_rmi4_data *rmi4_data)
 		dev_err(&rmi4_data->i2c_client->dev,
 			"%s: f12 set_feature write fail[%d]\n", __func__, retval);
 	}
-	
+
 #ifdef ENABLE_F12_OBJTYPE
 	retval = synaptics_rmi4_f12_obj_type_enable(rmi4_data);
 	if (retval < 0) {
@@ -1217,13 +1223,6 @@ static ssize_t synaptics_rmi4_suspend_store(struct device *dev,
 	if (sscanf(buf, "%u", &input) != 1)
 		return -EINVAL;
 
-	if (input == 1)
-		synaptics_rmi4_suspend(dev);
-	else if (input == 0)
-		synaptics_rmi4_resume(dev);
-	else
-		return -EINVAL;
-
 	return count;
 }
 
@@ -1238,6 +1237,9 @@ static ssize_t synaptics_rmi4_suspend_store(struct device *dev,
 static int synaptics_rmi4_set_page(struct synaptics_rmi4_data *rmi4_data,
 		unsigned int address)
 {
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	bool prevent_sleep = (dt2w_switch > 0);
+#endif
 	int retval = 0;
 	unsigned char retry;
 	unsigned char buf[PAGE_SELECT_LEN];
@@ -1262,7 +1264,12 @@ static int synaptics_rmi4_set_page(struct synaptics_rmi4_data *rmi4_data,
 						__func__, retry + 1, retval);
 				if (retval == 0)
 					retval = -EAGAIN;
-				msleep(20);
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+				if (prevent_sleep)
+					msleep(180);
+				else
+					msleep(20);
+#endif
 			} else {
 				rmi4_data->current_page = page;
 				break;
@@ -2416,6 +2423,10 @@ out:
 int synaptics_rmi4_irq_enable(struct synaptics_rmi4_data *rmi4_data,
 		bool enable)
 {
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	bool prevent_sleep = (dt2w_switch > 0);
+#endif
+
 	int retval = 0;
 	unsigned char intr_status[MAX_INTR_REGISTERS];
 
@@ -2434,14 +2445,36 @@ int synaptics_rmi4_irq_enable(struct synaptics_rmi4_data *rmi4_data,
 			return retval;
 		}
 
-		if (rmi4_data->dt_data->extra_config[3])
-		retval = request_threaded_irq(rmi4_data->irq, NULL,
-				synaptics_rmi4_irq, TSP_IRQ_TYPE_LEVEL, 
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+    if (prevent_sleep) {
+			if (rmi4_data->dt_data->extra_config[3])
+				retval = request_threaded_irq(rmi4_data->irq, NULL,
+				synaptics_rmi4_irq, TSP_IRQ_TYPE_LEVEL | IRQF_FORCE_RESUME | IRQF_NO_SUSPEND,
 				DRIVER_NAME, rmi4_data);
-		else
+			else
+				retval = request_threaded_irq(rmi4_data->irq, NULL,
+				synaptics_rmi4_irq, TSP_IRQ_TYPE_EDGE | IRQF_FORCE_RESUME | IRQF_NO_SUSPEND,
+				DRIVER_NAME, rmi4_data);
+    } else {
+			if (rmi4_data->dt_data->extra_config[3])
+				retval = request_threaded_irq(rmi4_data->irq, NULL,
+				synaptics_rmi4_irq, TSP_IRQ_TYPE_LEVEL,
+				DRIVER_NAME, rmi4_data);
+			else
+				retval = request_threaded_irq(rmi4_data->irq, NULL,
+				synaptics_rmi4_irq, TSP_IRQ_TYPE_EDGE,
+				DRIVER_NAME, rmi4_data);
+    }
+#else
+    if (rmi4_data->dt_data->extra_config[3])
 			retval = request_threaded_irq(rmi4_data->irq, NULL,
-				synaptics_rmi4_irq, TSP_IRQ_TYPE_EDGE, 
-				DRIVER_NAME, rmi4_data);
+			synaptics_rmi4_irq, TSP_IRQ_TYPE_LEVEL,
+			DRIVER_NAME, rmi4_data);
+    else
+			retval = request_threaded_irq(rmi4_data->irq, NULL,
+			synaptics_rmi4_irq, TSP_IRQ_TYPE_EDGE,
+			DRIVER_NAME, rmi4_data);
+#endif
 
 		if (retval < 0) {
 			dev_err(&rmi4_data->i2c_client->dev,
@@ -2837,7 +2870,7 @@ static int synaptics_rmi4_f12_init(struct synaptics_rmi4_data *rmi4_data,
 					__func__, __LINE__, retval);
 			return retval;
 		}
-	
+
 		retval = synaptics_rmi4_f12_set_feature(rmi4_data);
 		if (retval < 0) {
 			dev_err(&rmi4_data->i2c_client->dev, "%s: f12_set_feature fail[%d]\n",
@@ -4409,7 +4442,7 @@ static int synaptics_rmi4_reinit_device(struct synaptics_rmi4_data *rmi4_data)
 		list_for_each_entry(fhandler, &rmi->support_fn_list, link) {
 			if (fhandler->fn_number == SYNAPTICS_RMI4_F12) {
 #ifdef GLOVE_MODE
-				retval = synaptics_rmi4_glove_mode_enables(rmi4_data);				
+				retval = synaptics_rmi4_glove_mode_enables(rmi4_data);
 				if (retval < 0) {
 					dev_err(&rmi4_data->i2c_client->dev,
 							"%s: Failed to glove mode enable, error = %d\n",
@@ -5017,7 +5050,7 @@ static void synaptics_get_firmware_name(struct synaptics_rmi4_data *rmi4_data)
 			} else if (rmi4_data->ic_revision_of_ic == SYNAPTICS_IC_REVISION_A3) {
 				if (strncmp(rmi4_data->dt_data->sub_project, "0", 1) != 0) {
 					if ((strncmp(rmi4_data->dt_data->sub_project, "active", 6) == 0))
-							rmi4_data->firmware_name = FW_IMAGE_NAME_S5100_K_ACTIVE;					
+							rmi4_data->firmware_name = FW_IMAGE_NAME_S5100_K_ACTIVE;
 					else if(strncmp(rmi4_data->dt_data->sub_project, "sports", 6) == 0)
 							rmi4_data->firmware_name = FW_IMAGE_NAME_S5100_K_SPORTS;
 					else
@@ -5050,14 +5083,14 @@ static void synaptics_get_firmware_name(struct synaptics_rmi4_data *rmi4_data)
 			rmi4_data->firmware_name = FW_IMAGE_NAME_S5707_KLIMT;
 		else if (strncmp(rmi4_data->dt_data->project, "RUBENS", 6) == 0)
 			rmi4_data->firmware_name = FW_IMAGE_NAME_S5707_RUBENS;
-		else 
+		else
 			rmi4_data->firmware_name = FW_IMAGE_NAME_S5707;
 	} else if (rmi4_data->ic_version == SYNAPTICS_PRODUCT_ID_S5708) {
 		rmi4_data->firmware_name = FW_IMAGE_NAME_S5708;
 	} else if (rmi4_data->ic_version == SYNAPTICS_PRODUCT_ID_S5006) {
-		rmi4_data->firmware_name = FW_IMAGE_NAME_S5006;		
+		rmi4_data->firmware_name = FW_IMAGE_NAME_S5006;
 	} else if (rmi4_data->ic_version == SYNAPTICS_PRODUCT_ID_S5710) {
-			rmi4_data->firmware_name = FW_IMAGE_NAME_S5710; 	
+			rmi4_data->firmware_name = FW_IMAGE_NAME_S5710;
 	} else {
 		rmi4_data->firmware_name = FW_IMAGE_NAME_NONE;
 	}
@@ -5344,11 +5377,10 @@ err_tsp_reboot:
 		goto err_led_reg;
 	}
 #endif
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	rmi4_data->early_suspend.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN - 2;
-	rmi4_data->early_suspend.suspend = synaptics_rmi4_early_suspend;
-	rmi4_data->early_suspend.resume = synaptics_rmi4_late_resume;
-	register_early_suspend(&rmi4_data->early_suspend);
+#ifdef CONFIG_POWERSUSPEND
+	rmi4_data->power_suspend.suspend = synaptics_rmi4_early_suspend;
+	rmi4_data->power_suspend.resume = synaptics_rmi4_late_resume;
+	register_power_suspend(&rmi4_data->power_suspend);
 #endif
 
 #ifdef SYNAPTICS_RMI_INFORM_CHARGER
@@ -5457,13 +5489,18 @@ static void synaptics_rmi4_shutdown(struct i2c_client *client)
  */
 static int __devexit synaptics_rmi4_remove(struct i2c_client *client)
 {
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	bool prevent_sleep = (dt2w_switch > 0);
+
+	if (!prevent_sleep) {
+#endif
 	unsigned char attr_count;
 	struct synaptics_rmi4_data *rmi4_data = i2c_get_clientdata(client);
 	struct synaptics_rmi4_device_info *rmi;
 
 	rmi = &(rmi4_data->rmi4_mod_info);
-#ifdef CONFIG_HAS_EARLYSUSPEND
-	unregister_early_suspend(&rmi4_data->early_suspend);
+#ifdef CONFIG_POWERSUSPEND
+	unregister_power_suspend(&rmi4_data->power_suspend);
 #endif
 #if defined(CONFIG_LEDS_CLASS) && defined(TOUCHKEY_ENABLE)
 	led_classdev_unregister(&rmi4_data->leds);
@@ -5503,7 +5540,11 @@ static int __devexit synaptics_rmi4_remove(struct i2c_client *client)
 	mutex_destroy(&(rmi4_data->rmi4_device_mutex));
 
 	kfree(rmi4_data);
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	}
 
+	pr_info("Dt2W is enabled! Synaptics sensor suspend is disabled\n");
+#endif
 	return 0;
 }
 
@@ -5517,6 +5558,9 @@ static int __devexit synaptics_rmi4_remove(struct i2c_client *client)
  */
 static void synaptics_rmi4_sensor_sleep(struct synaptics_rmi4_data *rmi4_data)
 {
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	bool prevent_sleep = (dt2w_switch > 0);
+#endif
 	int retval;
 	unsigned char device_ctrl;
 #ifdef SIDE_TOUCH
@@ -5580,7 +5624,10 @@ static void synaptics_rmi4_sensor_sleep(struct synaptics_rmi4_data *rmi4_data)
 		rmi4_data->sensor_sleep = false;
 		return;
 	} else {
-		rmi4_data->sensor_sleep = true;
+    	if (prevent_sleep) {
+		goto end;
+    		rmi4_data->sensor_sleep = true;
+		}
 	}
 
 	msleep(20);
@@ -5589,6 +5636,8 @@ static void synaptics_rmi4_sensor_sleep(struct synaptics_rmi4_data *rmi4_data)
 	synaptics_rmi4_irq_enable(rmi4_data, false);
 #endif
 	return;
+end:
+  return;
 }
 
 /**
@@ -5674,6 +5723,11 @@ static void synaptics_rmi4_sensor_wake(struct synaptics_rmi4_data *rmi4_data)
 
 static int synaptics_rmi4_stop_device(struct synaptics_rmi4_data *rmi4_data)
 {
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	bool prevent_sleep = (dt2w_switch > 0);
+
+	if (!prevent_sleep) {
+#endif
 	mutex_lock(&rmi4_data->rmi4_device_mutex);
 
 	if (rmi4_data->touch_stopped) {
@@ -5691,12 +5745,37 @@ static int synaptics_rmi4_stop_device(struct synaptics_rmi4_data *rmi4_data)
 
 out:
 	mutex_unlock(&rmi4_data->rmi4_device_mutex);
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	}
+         pr_info("Dt2W is enabled! Stopping Synaptics is denied\n");
+#endif
 	return 0;
 }
 
 static int synaptics_rmi4_start_device(struct synaptics_rmi4_data *rmi4_data)
 {
 	int retval = 0;
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	bool prevent_sleep = (dt2w_switch > 0);
+
+  if (prevent_sleep) {
+  	pr_info("Dt2W is enabled! Checking Dt2W status...\n");
+  	pr_info("Dt2W : Reseting Dt2W status...\n");
+  if ((dt2w_switch = 1)) {
+  	dt2w_switch = 0;
+  	mdelay(50);
+  	dt2w_switch = 1;
+  }
+  if ((dt2w_switch = 2)) {
+  	dt2w_switch = 0;
+  	mdelay(50);
+  	dt2w_switch = 2;
+  }
+  if ((dt2w_switch = 0))
+  	dt2w_switch = 0;
+  	pr_info("Dt2W : Dt2W status reset...\n");
+  }
+#endif
 	mutex_lock(&rmi4_data->rmi4_device_mutex);
 
 	if (!rmi4_data->touch_stopped) {
@@ -5738,6 +5817,25 @@ static int synaptics_rmi4_start_device(struct synaptics_rmi4_data *rmi4_data)
 
 out:
 	mutex_unlock(&rmi4_data->rmi4_device_mutex);
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+  if (prevent_sleep) {
+  	pr_info("Dt2W is enabled! Checking Dt2W status to reset again...\n");
+  	pr_info("Dt2W : Reseting Dt2W status...\n");
+  if ((dt2w_switch = 1)) {
+  	dt2w_switch = 0;
+  	mdelay(50);
+  	dt2w_switch = 1;
+  }
+  if ((dt2w_switch = 2)) {
+  	dt2w_switch = 0;
+  	mdelay(50);
+  	dt2w_switch = 2;
+  }
+  if ((dt2w_switch = 0))
+  	dt2w_switch = 0;
+  	pr_info("Dt2W : Dt2W status reset...\n");
+  }
+#endif
 	return retval;
 }
 
@@ -5765,11 +5863,14 @@ static int synaptics_rmi4_input_open(struct input_dev *dev)
 
 static void synaptics_rmi4_input_close(struct input_dev *dev)
 {
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	bool prevent_sleep = (dt2w_switch > 0);
+#endif
 	struct synaptics_rmi4_data *rmi4_data = input_get_drvdata(dev);
 
 	dev_info(&rmi4_data->i2c_client->dev, "%s %s\n", __func__, rmi4_data->use_deepsleep ? "deepsleep" : "");
 
-	if (rmi4_data->use_deepsleep) {
+	if (rmi4_data->use_deepsleep || prevent_sleep) {
 		synaptics_rmi4_sensor_sleep(rmi4_data);
 		gpio_tlmm_config(GPIO_CFG(rmi4_data->dt_data->scl_gpio, 3, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), 1);
 		gpio_tlmm_config(GPIO_CFG(rmi4_data->dt_data->sda_gpio, 3, GPIO_CFG_INPUT, GPIO_CFG_NO_PULL, GPIO_CFG_2MA), 1);
@@ -5782,7 +5883,7 @@ static void synaptics_rmi4_input_close(struct input_dev *dev)
 #endif
 
 #ifdef CONFIG_PM
-#ifdef CONFIG_HAS_EARLYSUSPEND
+#ifdef CONFIG_POWERSUSPEND
 #define synaptics_rmi4_suspend NULL
 #define synaptics_rmi4_resume NULL
 
@@ -5793,17 +5894,25 @@ static void synaptics_rmi4_input_close(struct input_dev *dev)
  * enters suspend.
  *
  * This function calls synaptics_rmi4_sensor_sleep() to stop finger
- * data acquisition and put the sensor to sleep.
+ * data acquisition and put the sensor to sleep if D2W is not enabled.
+ * Doubletap2wake feature added by Ghost
  */
-static void synaptics_rmi4_early_suspend(struct early_suspend *h)
+static void synaptics_rmi4_early_suspend(struct power_suspend *h)
 {
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	bool prevent_sleep = (dt2w_switch > 0);
+#endif
 	struct synaptics_rmi4_data *rmi4_data =
 		container_of(h, struct synaptics_rmi4_data,
-				early_suspend);
+				power_suspend);
 
 	dev_info(&rmi4_data->i2c_client->dev, "%s\n", __func__);
 
-	if (rmi4_data->stay_awake) {
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	if ((rmi4_data->stay_awake) || prevent_sleep) {
+#else
+  if (rmi4_data->stay_awake) {
+#endif
 		rmi4_data->staying_awake = true;
 		dev_info(&rmi4_data->i2c_client->dev, "%s : return due to staying_awake\n",
 				__func__);
@@ -5812,8 +5921,10 @@ static void synaptics_rmi4_early_suspend(struct early_suspend *h)
 		rmi4_data->staying_awake = false;
 	}
 
-	synaptics_rmi4_stop_device(rmi4_data);
-
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+  if (!prevent_sleep)
+		synaptics_rmi4_stop_device(rmi4_data);
+#endif
 	return;
 }
 
@@ -5826,17 +5937,17 @@ static void synaptics_rmi4_early_suspend(struct early_suspend *h)
  * This function goes through the sensor wake process if the system wakes
  * up from early suspend (without going into suspend).
  */
-static void synaptics_rmi4_late_resume(struct early_suspend *h)
+static void synaptics_rmi4_late_resume(struct power_suspend *h)
 {
 	int retval = 0;
 	struct synaptics_rmi4_data *rmi4_data =
 		container_of(h, struct synaptics_rmi4_data,
-				early_suspend);
+				power_suspend);
 
 	dev_info(&rmi4_data->i2c_client->dev, "%s\n", __func__);
 
 	if (rmi4_data->staying_awake) {
-		dev_info(&rmi4_data->i2c_client->dev, "%s : return due to staying_awake\n",
+		dev_info(&rmi4_data->i2c_client->dev, "%s : return due to staying_awake or Dt2W is enabled\n",
 				__func__);
 		return;
 	}
@@ -5862,19 +5973,22 @@ static void synaptics_rmi4_late_resume(struct early_suspend *h)
  */
 static int synaptics_rmi4_suspend(struct device *dev)
 {
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+	bool prevent_sleep = (dt2w_switch > 0);
+#endif
 	struct synaptics_rmi4_data *rmi4_data = dev_get_drvdata(dev);
 
 	dev_dbg(&rmi4_data->i2c_client->dev, "%s\n", __func__);
 
-	if (rmi4_data->staying_awake) {
-		dev_info(&rmi4_data->i2c_client->dev, "%s : return due to staying_awake\n",
+	if (rmi4_data->staying_awake || prevent_sleep) {
+		dev_info(&rmi4_data->i2c_client->dev, "%s : return due to staying_awake or Dt2W is enabled\n",
 				__func__);
 		return 0;
 	}
 
 	mutex_lock(&rmi4_data->input_dev->mutex);
 
-	if (rmi4_data->input_dev->users)
+	if (rmi4_data->input_dev->users || !prevent_sleep)
 		synaptics_rmi4_stop_device(rmi4_data);
 
 	mutex_unlock(&rmi4_data->input_dev->mutex);
@@ -5993,4 +6107,3 @@ MODULE_AUTHOR("Synaptics, Inc.");
 MODULE_DESCRIPTION("Synaptics RMI4 I2C Touch Driver");
 MODULE_LICENSE("GPL v2");
 MODULE_VERSION(SYNAPTICS_RMI4_DRIVER_VERSION);
-

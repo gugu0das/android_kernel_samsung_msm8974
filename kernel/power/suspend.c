@@ -223,7 +223,11 @@ int suspend_devices_and_enter(suspend_state_t state)
 	suspend_test_start();
 	error = dpm_suspend_start(PMSG_SUSPEND);
 	if (error) {
-		printk(KERN_ERR "PM: Some devices failed to suspend\n");
+        #ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+               printk(KERN_ERR "PM: Dt2W is enabled, using shallow suspend\n");
+        #else
+               printk(KERN_ERR "PM: Some devices failed to suspend\n");
+        #endif
 		goto Recover_platform;
 	}
 	suspend_test_finish("suspend devices");
