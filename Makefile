@@ -382,7 +382,8 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
 		   -Wno-switch-unreachable -Wno-format-overflow -Wno-stringop-overflow \
 		   -Wno-bool-operation -Wno-tautological-compare -Wno-discarded-array-qualifiers \
 		   -Wno-misleading-indentation -Wno-overflow -Wno-logical-not-parentheses \
-		   $(KERNEL_FLAGS)
+		   -Wno-attributes -Wno-sizeof-pointer-memaccess -Wno-stringop-truncation \
+		   -Wno-packed-not-aligned -Wno-restrict $(KERNEL_FLAGS)
 
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
