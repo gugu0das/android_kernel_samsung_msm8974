@@ -28,6 +28,20 @@
 /* SSP parsing the dataframe                                             */
 /*************************************************************************/
 
+#if defined (CONFIG_SEC_H_PROJECT) || (CONFIG_SEC_F_PROJECT)
+static void get_timestamp(struct ssp_data *data, char *pchRcvDataFrame,
+		int *iDataIdx, struct sensor_value *sensorsdata) {
+	s32 otimestamp = 0;
+	s64 ctimestamp = 0;
+
+	memcpy(&otimestamp, pchRcvDataFrame + *iDataIdx, 4);
+	*iDataIdx += 4;
+
+	ctimestamp = (s64) otimestamp * 1000000;
+	sensorsdata->timestamp = data->timestamp + ctimestamp;
+}
+
+#else
 static void generate_data(struct ssp_data *data, struct sensor_value *sensorsdata,
 						int iSensorData, u64 timestamp)
 {
@@ -67,6 +81,7 @@ static void get_timestamp(struct ssp_data *data, char *pchRcvDataFrame,
 	}
 	*iDataIdx += 4;
 }
+#endif
 
 static void get_3axis_sensordata(char *pchRcvDataFrame, int *iDataIdx,
 	struct sensor_value *sensorsdata)
@@ -219,7 +234,11 @@ int parse_dataframe(struct ssp_data *data, char *pchRcvDataFrame, int iLength) {
 	int iDataIdx, iSensorData;
 	u16 length = 0;
 	struct sensor_value sensorsdata;
+#if defined (CONFIG_SEC_H_PROJECT) || (CONFIG_SEC_F_PROJECT)
+	struct timespec ts;
+#else
 	struct ssp_time_diff sensortime;
+#endif
 
 	for (iDataIdx = 0; iDataIdx < iLength;) {
 		switch (pchRcvDataFrame[iDataIdx++]) {
@@ -230,6 +249,12 @@ int parse_dataframe(struct ssp_data *data, char *pchRcvDataFrame, int iLength) {
 						iSensorData);
 				return ERROR;
 			}
+#if defined (CONFIG_SEC_H_PROJECT) || (CONFIG_SEC_F_PROJECT)
+			data->get_sensor_data[iSensorData](pchRcvDataFrame, &iDataIdx,
+					&sensorsdata);
+			get_timestamp(data, pchRcvDataFrame, &iDataIdx, &sensorsdata);
+			data->report_sensor_data[iSensorData](data, &sensorsdata);
+#else
 			memcpy(&length, pchRcvDataFrame + iDataIdx, 2);
 			iDataIdx += 2;
 			sensortime.batch_count = sensortime.batch_count_fixed = length;
@@ -289,6 +314,7 @@ int parse_dataframe(struct ssp_data *data, char *pchRcvDataFrame, int iLength) {
 
 			data->lastTimestamp[iSensorData] = data->timestamp;
 			data->reportedData[iSensorData] = true;
+#endif
 			break;
 		case MSG2AP_INST_DEBUG_DATA:
 			iSensorData = print_mcu_debug(pchRcvDataFrame, &iDataIdx, iLength);
@@ -318,7 +344,10 @@ int parse_dataframe(struct ssp_data *data, char *pchRcvDataFrame, int iLength) {
 			break;
 		}
 	}
-
+#if defined (CONFIG_SEC_H_PROJECT) || (CONFIG_SEC_F_PROJECT)
+	if (data->bTimeSyncing)
+		data->timestamp = ts.tv_sec * 1000000000ULL + ts.tv_nsec;
+#endif
 	return SUCCESS;
 }
 
