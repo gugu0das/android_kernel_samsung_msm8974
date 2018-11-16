@@ -305,7 +305,7 @@ enum {
 	SENSOR_MAX,
 };
 
-#if defined (CONFIG_SEC_H_PROJECT) || (CONFIG_SEC_F_PROJECT)
+#if defined (CONFIG_SEC_F_PROJECT)
 #define SSP_BYPASS_SENSORS_EN_ALL (1 << ACCELEROMETER_SENSOR |\
 	1 << GYROSCOPE_SENSOR | 1 << GEOMAGNETIC_UNCALIB_SENSOR |\
 	1 << GEOMAGNETIC_SENSOR | 1 << PRESSURE_SENSOR |\
@@ -431,7 +431,7 @@ enum {
 	BIG_TYPE_MAX,
 };
 
-#if !defined (CONFIG_SEC_H_PROJECT) || (CONFIG_SEC_F_PROJECT)
+#if !defined (CONFIG_SEC_F_PROJECT)
 enum {
 	BATCH_MODE_NONE = 0,
 	BATCH_MODE_RUN,
@@ -449,13 +449,13 @@ struct ssp_time_diff {
 struct ssp_data {
 	struct iio_dev *accel_indio_dev;
 	struct iio_dev *gyro_indio_dev;
-#if !defined (CONFIG_SEC_H_PROJECT) || (CONFIG_SEC_F_PROJECT)
+#if !defined (CONFIG_SEC_F_PROJECT)
 	struct iio_dev *uncal_gyro_indio_dev;
 #endif
 	struct iio_dev *rot_indio_dev;
 	struct iio_dev *game_rot_indio_dev;
 	struct iio_dev *step_det_indio_dev;
-#if !defined (CONFIG_SEC_H_PROJECT) || (CONFIG_SEC_F_PROJECT)
+#if !defined (CONFIG_SEC_F_PROJECT)
 	struct iio_dev *mag_indio_dev;
 	struct iio_dev *uncal_mag_indio_dev;
 #endif
@@ -468,13 +468,13 @@ struct ssp_data {
 	struct input_dev *light_input_dev;
 	struct input_dev *prox_input_dev;
 	struct input_dev *temp_humi_input_dev;
-#if defined (CONFIG_SEC_H_PROJECT) || (CONFIG_SEC_F_PROJECT)
+#if defined (CONFIG_SEC_F_PROJECT)
 	struct input_dev *mag_input_dev;
 	struct input_dev *uncalib_mag_input_dev;
 #endif
 	struct input_dev *gesture_input_dev;
 	struct input_dev *sig_motion_input_dev;
-#if defined (CONFIG_SEC_H_PROJECT) || (CONFIG_SEC_F_PROJECT)
+#if defined (CONFIG_SEC_F_PROJECT)
 	struct input_dev *uncalib_gyro_input_dev;
 #endif
 	struct input_dev *step_cnt_input_dev;
@@ -553,12 +553,12 @@ struct ssp_data {
 	u64 step_count_total;
 	atomic_t aSensorEnable;
 	int64_t adDelayBuf[SENSOR_MAX];
-#if !defined (CONFIG_SEC_H_PROJECT) || (CONFIG_SEC_F_PROJECT)
+#if !defined (CONFIG_SEC_F_PROJECT)
 	u64 lastTimestamp[SENSOR_MAX];
 #endif
 	s32 batchLatencyBuf[SENSOR_MAX];
 	s8 batchOptBuf[SENSOR_MAX];
-#if !defined (CONFIG_SEC_H_PROJECT) || (CONFIG_SEC_F_PROJECT)
+#if !defined (CONFIG_SEC_F_PROJECT)
 	bool reportedData[SENSOR_MAX];
 #endif
 
