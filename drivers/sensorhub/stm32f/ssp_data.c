@@ -28,7 +28,7 @@
 /* SSP parsing the dataframe                                             */
 /*************************************************************************/
 
-#if defined (CONFIG_SEC_H_PROJECT) || (CONFIG_SEC_F_PROJECT)
+#if defined (CONFIG_SEC_F_PROJECT)
 static void get_timestamp(struct ssp_data *data, char *pchRcvDataFrame,
 		int *iDataIdx, struct sensor_value *sensorsdata) {
 	s32 otimestamp = 0;
@@ -234,7 +234,7 @@ int parse_dataframe(struct ssp_data *data, char *pchRcvDataFrame, int iLength) {
 	int iDataIdx, iSensorData;
 	u16 length = 0;
 	struct sensor_value sensorsdata;
-#if defined (CONFIG_SEC_H_PROJECT) || (CONFIG_SEC_F_PROJECT)
+#if defined (CONFIG_SEC_F_PROJECT)
 	struct timespec ts;
 #else
 	struct ssp_time_diff sensortime;
@@ -249,7 +249,7 @@ int parse_dataframe(struct ssp_data *data, char *pchRcvDataFrame, int iLength) {
 						iSensorData);
 				return ERROR;
 			}
-#if defined (CONFIG_SEC_H_PROJECT) || (CONFIG_SEC_F_PROJECT)
+#if defined (CONFIG_SEC_F_PROJECT)
 			data->get_sensor_data[iSensorData](pchRcvDataFrame, &iDataIdx,
 					&sensorsdata);
 			get_timestamp(data, pchRcvDataFrame, &iDataIdx, &sensorsdata);
@@ -301,8 +301,12 @@ int parse_dataframe(struct ssp_data *data, char *pchRcvDataFrame, int iLength) {
 				if (sensortime.irq_diff > 1000000)
 					data->report_sensor_data[iSensorData](data, &sensorsdata);
 				else if ((iSensorData == PROXIMITY_SENSOR) || (iSensorData == PROXIMITY_RAW)
+#if defined (CONFIG_SEC_H_PROJECT)
+						|| (iSensorData == GESTURE_SENSOR) || (iSensorData == SIG_MOTION_SENSOR))
+#else
 						|| (iSensorData == GESTURE_SENSOR) || (iSensorData == SIG_MOTION_SENSOR)
 						|| (iSensorData == STEP_DETECTOR) || (iSensorData == STEP_COUNTER))
+#endif
 					data->report_sensor_data[iSensorData](data, &sensorsdata);
 				else
 					pr_err("[SSP]: %s irq_diff is under 1msec (%d)\n", __func__, iSensorData);
@@ -344,7 +348,7 @@ int parse_dataframe(struct ssp_data *data, char *pchRcvDataFrame, int iLength) {
 			break;
 		}
 	}
-#if defined (CONFIG_SEC_H_PROJECT) || (CONFIG_SEC_F_PROJECT)
+#if defined (CONFIG_SEC_F_PROJECT)
 	if (data->bTimeSyncing)
 		data->timestamp = ts.tv_sec * 1000000000ULL + ts.tv_nsec;
 #endif
