@@ -266,7 +266,9 @@ static ssize_t set_sensors_enable(struct device *dev,
 			!= (uNewEnable & (1 << uChangedSensor))) {
 
 			if (!(uNewEnable & (1 << uChangedSensor))) {
+#if !defined (CONFIG_SEC_F_PROJECT)
 				data->reportedData[uChangedSensor] = false;
+#endif
 				ssp_remove_sensor(data, uChangedSensor,
 					uNewEnable); /* disable */
 			} else { /* Change to ADD_SENSOR_STATE from KitKat */
