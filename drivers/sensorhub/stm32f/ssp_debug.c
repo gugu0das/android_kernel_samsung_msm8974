@@ -414,6 +414,14 @@ static void debug_work_func(struct work_struct *work)
 			|| data->batchLatencyBuf[uSensorCnt])
 			print_sensordata(data, uSensorCnt);
 
+#if defined (CONFIG_SEC_F_PROJECT) || defined(CONFIG_SEC_H_PROJECT)
+	if ((atomic_read(&data->aSensorEnable) & SSP_BYPASS_SENSORS_EN_ALL)\
+		&& (data->uIrqCnt == 0))
+		data->uIrqFailCnt++;
+	else
+		data->uIrqFailCnt = 0;
+#endif
+
 	if (((data->uSsdFailCnt >= LIMIT_SSD_FAIL_CNT)
 		|| (data->uInstFailCnt >= LIMIT_INSTRUCTION_FAIL_CNT)
 		|| (data->uIrqFailCnt >= LIMIT_IRQ_FAIL_CNT)
