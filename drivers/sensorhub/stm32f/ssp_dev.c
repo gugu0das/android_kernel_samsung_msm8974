@@ -47,7 +47,7 @@ void ssp_enable(struct ssp_data *data, bool enable)
 static irqreturn_t sensordata_irq_thread_fn(int iIrq, void *dev_id)
 {
 	struct ssp_data *data = dev_id;
-#if !defined (CONFIG_SEC_F_PROJECT)
+#if !defined (CONFIG_SEC_F_PROJECT) || !defined(CONFIG_SEC_H_PROJECT)
 	struct timespec ts;
 
 	ts = ktime_to_timespec(alarm_get_elapsed_realtime());
@@ -77,7 +77,7 @@ static void initialize_variable(struct ssp_data *data)
 		data->batchLatencyBuf[iSensorIndex] = 0;
 		data->batchOptBuf[iSensorIndex] = 0;
 		data->aiCheckStatus[iSensorIndex] = INITIALIZATION_STATE;
-#if !defined (CONFIG_SEC_F_PROJECT)
+#if !defined (CONFIG_SEC_F_PROJECT) || !defined(CONFIG_SEC_H_PROJECT)
 		data->lastTimestamp[iSensorIndex] = 0;
 		data->reportedData[iSensorIndex] = false;
 #endif
